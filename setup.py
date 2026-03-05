@@ -8,12 +8,14 @@ with open("src/labelme_augmentor/__version__.py") as f:
     exec(f.read(), version)
 
 setup(
-    name="labelme-augmentor",
+    name="labelme-augmentor-pro",
     version=version["__version__"],
     description="Advanced data augmentation tool for LabelMe annotated datasets",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author=version["__author__"],
+    author_email=version["__email__"],
+    url="https://github.com/jakhon37/labelme-augmentor",
     license=version["__license__"],
     packages=[
         "labelme_augmentor",
@@ -52,5 +54,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Topic :: Scientific/Engineering :: Image Recognition",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
+    keywords="labelme augmentation data-augmentation computer-vision image-processing defect-detection",
 )

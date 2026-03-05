@@ -3,14 +3,14 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "labelme-augmentor"
+name = "labelme-augmentor-pro"
 version = "2.0.0"
 description = "Advanced data augmentation tool for LabelMe annotated datasets"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Jakhongir Nodirov", email = "jakhon37@gmail.com"}
 ]
 keywords = ["labelme", "augmentation", "computer-vision", "data-augmentation", "defect-detection"]
 classifiers = [
