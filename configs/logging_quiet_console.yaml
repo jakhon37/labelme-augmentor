@@ -1,0 +1,19 @@
+# Quick config for clean console output
+# Add this logging section to your existing config!
+
+general:
+  seed: 42
+  num_workers: 4
+  log_level: INFO  # Detailed logs in file
+
+# This makes console clean!
+logging:
+  log_to_file: true
+  log_to_console: true
+  console_level: WARNING  # Only warnings/errors in console
+  
+paths:
+  input_json_dir: "YOUR_INPUT_PATH"
+  output_dir: "YOUR_OUTPUT_PATH"
+
+# ... rest of your config ...

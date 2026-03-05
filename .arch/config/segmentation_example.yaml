@@ -1,0 +1,113 @@
+# Example Segmentation Configuration
+# Demonstrates how to configure the system for segmentation tasks
+
+# Project info
+project:
+  name: "Perfect Segmentation Augmentation"
+  version: "1.0.0"
+
+# Dataset settings
+dataset:
+  input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/dataSEG_v1/labelsME_seg_all_clean_STRIPE_SCRATCH/all_split_chunk/val
+  output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/dataSEG_v1/labelsME_seg_all_clean_STRIPE_SCRATCH/all_split_chunk_segaug/val21
+  mode: multi_class  # 'single_class' or 'multi_class'
+  format: yolo_seg  # 'yolo_seg', 'coco_seg', 'mask', 'polygon'
+  target_count: 100
+  augmentations_per_image: 3
+
+# System settings
+system:
+  num_workers: null  # null = auto-detect
+  seed: 42
+  resize_dim: [1024,1024]
+  # resize_dim: [640, 640]  # [width, height] or null
+
+# Defect classes (same as bbox version)
+classes:
+  0: T1-Scratch
+  1: T2-Depress
+  2: T4-AbrasionScratch
+  3: T5-WhiteDot
+  4: T7-MultipleDot
+  5: T8-LightDot
+  6: T9-DarkDot
+  7: T10-Discoloration
+  8: T13-ShinyDot
+  9: T14-MatteDot
+  10: T15-Stripe
+  11: T18-EmbeddedForeignFiber
+  12: T19-BlackLine
+  13: T20-ShortScratch
+
+# Sensitivity settings
+sensitivity:
+  color_sensitive: [T5-WhiteDot, T8-LightDot, T9-DarkDot, T10-Discoloration, T13-ShinyDot, T14-MatteDot, T19-BlackLine]
+  size_sensitive: [T5-WhiteDot, T7-MultipleDot, T8-LightDot, T9-DarkDot, T13-ShinyDot, T14-MatteDot]
+  min_defect_area: 40  # pixels² for size-sensitive defects
+
+# Global augmentations (segmentation-safe)
+global_augmentations:
+  - name: HorizontalFlip
+    probability: 0.5
+  - name: VerticalFlip
+    probability: 0.4
+  - name: Rotate
+    probability: 0.5
+    params:
+      limit: [-15, 15]
+  - name: Transpose
+    probability: 0.3
+  - name: RandomRotate90
+    probability: 0.3
+  # Avoid augmentations that might break segmentation masks
+  # - name: ElasticTransform  # Can distort masks significantly
+  # - name: GridDistortion   # Can distort masks significantly
+  # - name: OpticalDistortion # Can distort masks significantly
+
+# Class-specific overrides
+class_overrides:
+  # Color-sensitive defects: avoid color changes
+  T10-Discoloration:
+    exclude: [RandomBrightnessContrast, HueSaturationValue, ColorJitter]
+    max_color_change: 0.05
+    
+  # Size-sensitive defects: be very conservative
+  T5-WhiteDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion]
+    conservative_rotation: 5
+    
+  T7-MultipleDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion]
+    
+  T8-LightDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion, RandomBrightnessContrast]
+    
+  T9-DarkDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion, RandomBrightnessContrast]
+    
+  T13-ShinyDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion, RandomBrightnessContrast]
+    
+  T14-MatteDot:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion, RandomBrightnessContrast]
+
+# Validation settings
+validation:
+  # Segmentation validation (primary for this format)
+  min_mask_area: 5  # minimum pixels in mask
+  
+  # Bounding box validation (for fallback)
+  min_bbox_width: 0.002
+  min_bbox_height: 0.002
+  min_bbox_area: 0.000004
+  min_visibility: 0.5
+  
+  # General validation
+  max_retries: 10
+
+# Conservative mode (recommended for segmentation)
+conservative_mode:
+  enabled: false
+  max_rotation: 10
+  max_brightness_change: 0.03
+  max_contrast_change: 0.03

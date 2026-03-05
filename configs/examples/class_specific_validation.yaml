@@ -1,0 +1,278 @@
+# ==============================================================================
+# CLASS-SPECIFIC VALIDATION EXAMPLE
+# ==============================================================================
+# This example demonstrates per-class validation parameter overrides.
+# Each defect type can have its own validation rules while falling back to
+# global settings when not specified.
+#
+# Use case: Different defect types have different characteristics:
+# - Small defects (pinhole) need lower area thresholds
+# - Edge defects should avoid borders
+# - Color defects need strict shape preservation
+# - Large defects can tolerate more deformation
+# ==============================================================================
+
+# General settings
+general:
+  seed: 42
+  num_workers: 4  # Parallel processing
+  log_level: "INFO"
+  enable_base64: false
+  resume_from_checkpoint: true
+  checkpoint_file: "augmentation_checkpoint.json"
+
+# Input/Output paths
+paths:
+  input_json_dir: "/path/to/input/labelme_jsons"
+  output_dir: "/path/to/output/augmented_data"
+
+# Output structure
+output:
+  images_subdir: "images"
+  annotations_subdir: "annotations"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentations (default for all classes)
+global_augmentations:
+  num_augmentations_per_image: 5
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-15, 15]
+        border_mode: 0
+    - name: RandomBrightnessContrast
+      probability: 0.3
+      params:
+        brightness_limit: 0.2
+        contrast_limit: 0.2
+
+# Global validation settings (defaults for all classes)
+validation:
+  enabled: true
+  min_defect_area: 20            # Default: 20 pixels minimum
+  max_defect_area: 50000         # Default: 50k pixels maximum
+  min_defect_length: 50             #  min 50px length
+  max_defect_length: 5000            # Cap maximum length
+  min_contour_points: 3          # Default: 3 points minimum
+  check_defect_preservation: true # Default: check area preservation
+  max_area_change_ratio: 0.5     # Default: allow 50% area change
+  reject_border_defects: false   # Default: allow defects at borders
+  border_margin: 5               # Default: 5 pixel margin
+
+# ==============================================================================
+# CLASS-SPECIFIC OVERRIDES
+# ==============================================================================
+# Each class can override any validation parameter. Unspecified parameters
+# fall back to the global validation settings above.
+# ==============================================================================
+
+class_specific:
+  
+  # --------------------------------------------------------------------------
+  # SMALL DEFECT: Pinhole / Tiny Spot
+  # --------------------------------------------------------------------------
+  # Characteristics: Very small (5-50 pixels), sensitive to deformation
+  # Strategy: Low area threshold, strict preservation, tight contour requirements
+  # --------------------------------------------------------------------------
+  T1-Pinhole:
+    num_augmentations_per_image: 10  # More augmentation for rare small defects
+    min_defect_area: 5                # Much lower than global (20)
+    max_defect_area: 100              # Upper limit for small defects
+    min_contour_points: 4             # Tighter than global (3)
+    max_area_change_ratio: 0.1        # Very strict: only 10% change allowed
+    check_defect_preservation: true   # Must preserve shape
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      # No rotation - too aggressive for tiny defects
+  
+  # --------------------------------------------------------------------------
+  # EDGE DEFECT: Crack / Edge Damage
+  # --------------------------------------------------------------------------
+  # Characteristics: Linear, often near edges, shouldn't touch borders after aug
+  # Strategy: Reject border defects, moderate area tolerance
+  # --------------------------------------------------------------------------
+  T2-EdgeCrack:
+    num_augmentations_per_image: 8
+    min_defect_area: 50               # Cracks are typically larger
+    max_area_change_ratio: 0.3        # Moderate: 30% change allowed
+    reject_border_defects: true       # Override global: must not touch borders
+    border_margin: 10                 # Larger margin than global (5)
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      - name: Rotate
+        probability: 0.3
+        params:
+          limit: [-10, 10]            # Smaller rotation to avoid borders
+  
+  # --------------------------------------------------------------------------
+  # COLOR DEFECT: Discoloration / Stain
+  # --------------------------------------------------------------------------
+  # Characteristics: Large area, color-sensitive, shape can vary
+  # Strategy: Higher area threshold, more tolerant to deformation, no color augmentations
+  # --------------------------------------------------------------------------
+  T3-Discoloration:
+    num_augmentations_per_image: 6
+    min_defect_area: 100              # Larger minimum
+    max_defect_area: 100000           # Can be very large
+    max_area_change_ratio: 0.7        # Very tolerant: 70% change allowed
+    min_contour_points: 3             # Standard requirement
+    check_defect_preservation: true   # Still check but with high tolerance
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      - name: Rotate
+        probability: 0.4
+        params:
+          limit: [-20, 20]
+      # NO color transforms - would invalidate the defect detection
+  
+  # --------------------------------------------------------------------------
+  # ROBUST DEFECT: Scratch / Abrasion
+  # --------------------------------------------------------------------------
+  # Characteristics: Linear, elongated defect, robust to augmentation, common defect
+  # Strategy: Use length validation for elongated shape, high tolerance to deformation
+  # --------------------------------------------------------------------------
+  T4-Scratch:
+    num_augmentations_per_image: 5    # Standard amount (common defect)
+    min_defect_area: 30
+    min_defect_length: 50             # Scratches are elongated (min 50px length)
+    max_defect_length: 500            # Cap maximum length
+    max_area_change_ratio: 0.6        # Tolerant: 60% change allowed
+    reject_border_defects: false      # Can appear at edges
+    # Uses global transforms (all augmentations enabled)
+  
+  # --------------------------------------------------------------------------
+  # RARE DEFECT: Embedded Foreign Material
+  # --------------------------------------------------------------------------
+  # Characteristics: Very rare, irregular shape, critical to preserve
+  # Strategy: Aggressive augmentation count, strict validation, preserve exactly
+  # --------------------------------------------------------------------------
+  T5-EmbeddedForeign:
+    num_augmentations_per_image: 50   # Heavy augmentation for rare class
+    min_defect_area: 10
+    max_defect_area: 5000
+    max_area_change_ratio: 0.15       # Very strict: only 15% change
+    min_contour_points: 5             # Complex shape needs more points
+    check_defect_preservation: true
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.9              # High probability for more variety
+      - name: VerticalFlip
+        probability: 0.9
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: [-45, 45]            # Full rotation range
+      - name: RandomBrightnessContrast
+        probability: 0.5
+        params:
+          brightness_limit: 0.15
+          contrast_limit: 0.15
+  
+  # --------------------------------------------------------------------------
+  # FLEXIBLE DEFECT: Wrinkle / Fold
+  # --------------------------------------------------------------------------
+  # Characteristics: Large, deformable, shape changes are acceptable
+  # Strategy: Disable preservation check, allow aggressive augmentation
+  # --------------------------------------------------------------------------
+  T6-Wrinkle:
+    num_augmentations_per_image: 7
+    min_defect_area: 200              # Large defects
+    max_defect_area: 150000
+    check_defect_preservation: false  # Disable area preservation check
+    reject_border_defects: false
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      - name: Rotate
+        probability: 0.5
+        params:
+          limit: [-30, 30]
+      - name: ElasticTransform         # Aggressive deformation OK
+        probability: 0.3
+        params:
+          alpha: 50
+          sigma: 5
+  
+  # --------------------------------------------------------------------------
+  # CRITICAL DEFECT: Safety Issue
+  # --------------------------------------------------------------------------
+  # Characteristics: Must be detected accurately, no false positives
+  # Strategy: Minimal augmentation, strictest validation
+  # --------------------------------------------------------------------------
+  T7-CriticalDefect:
+    num_augmentations_per_image: 3    # Conservative augmentation
+    min_defect_area: 25
+    max_defect_area: 10000
+    min_contour_points: 5
+    max_area_change_ratio: 0.05       # Extremely strict: 5% change max
+    check_defect_preservation: true
+    reject_border_defects: true       # Must be clearly visible
+    border_margin: 15                 # Large margin
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.3              # Low probability for minimal change
+      - name: VerticalFlip
+        probability: 0.3
+
+# Visualization settings
+visualization:
+  auto_generate_colors: true
+  custom_colors:
+    T1-Pinhole: [255, 0, 0]          # Red - critical small defect
+    T2-EdgeCrack: [255, 165, 0]      # Orange - edge issue
+    T3-Discoloration: [255, 255, 0]  # Yellow - color defect
+    T4-Scratch: [0, 255, 0]          # Green - common defect
+    T5-EmbeddedForeign: [128, 0, 128] # Purple - rare defect
+    T6-Wrinkle: [0, 255, 255]        # Cyan - flexible defect
+    T7-CriticalDefect: [255, 0, 255] # Magenta - critical
+  default_colors: []
+
+# Image processing
+image_processing:
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  output_format: 'png'
+  output_quality: 95
+  normalize_16bit: true
+  handle_grayscale: true
+  handle_rgba: true
+  validate_loaded_images: true
+  min_image_size: [32, 32]
+  max_image_size: [8192, 8192]
+
+# ==============================================================================
+# VALIDATION PARAMETER REFERENCE
+# ==============================================================================
+# Parameter                  | Description                          | Default
+# ---------------------------|--------------------------------------|--------
+# min_defect_area            | Minimum defect size (pixels)         | 20
+# max_defect_area            | Maximum defect size (pixels)         | None
+# min_defect_length          | Minimum length/major axis (pixels)   | None
+# max_defect_length          | Maximum length/major axis (pixels)   | None
+# min_contour_points         | Minimum points in contour            | 3
+# check_defect_preservation  | Validate area preservation           | true
+# max_area_change_ratio      | Max allowed area change (0.0-1.0)    | 0.5
+# reject_border_defects      | Reject defects touching borders      | false
+# border_margin              | Border margin distance (pixels)      | 5
+#
+# Notes:
+# - min/max_defect_length measures major axis using rotated bounding box
+# - Works correctly for defects at any angle (scratches, cracks, etc.)
+# - All parameters are optional per class and fall back to global validation
+# ==============================================================================

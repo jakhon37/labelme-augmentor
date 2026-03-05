@@ -1,0 +1,280 @@
+# LabelMe Augmentation Configuration - Updated Class Distribution
+# Complete configuration for flexible augmentation with per-class settings
+# Target: ~64,000-65,000 samples per class (anchored to I2-Defect)
+
+# General settings
+general:
+  seed: 42
+  num_workers: null  # null = auto-detect cores, or specify number
+  log_level: DEBUG  # File logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL  
+  enable_base64: false  # Set to false to save disk space and processing time
+  checkpoint_file: "augmentation_checkpoint.json"  # Resume from checkpoint
+  resume_from_checkpoint: true  # Enable checkpoint/resume functionality
+  
+# Logging configuration
+logging:
+  log_to_file: true          # Save logs to file
+  log_to_console: true       # Show logs in console
+  console_level: ERROR       # Console level (less verbose than file)
+  log_filename: null         # null = auto-generate with timestamp
+  # log_filename: "my_augmentation.log"  # Or specify custom name
+
+# Input/Output paths
+paths:
+  input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/INK/teset_data_chunk_02_20_90/defect_split_even/train"
+  output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/INK/teset_data_chunk_02_20_90/defect_split_even/train_aug_02_20"
+
+  # input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/INK/teset_data_chunk_02_20_90/defect_split_even/val"
+  # output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/INK/teset_data_chunk_02_20_90/defect_split_even/val_aug_02_20"
+
+# Output structure
+output:
+  images_subdir: "imagesLB"
+  annotations_subdir: "imagesLB"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentation settings (applied to all classes unless overridden)
+global_augmentations:
+  num_augmentations_per_image: 0  # How many augmented versions per image
+  
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+      
+    - name: VerticalFlip
+      probability: 0.3
+      params: {}
+      
+    - name: RandomRotate90
+      probability: 0.5
+      params: {}
+      
+    - name: Rotate
+      probability: 0.4
+      params:
+        limit: 30
+        border_mode: 0
+        
+    - name: ShiftScaleRotate
+      probability: 0.5
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.15
+        rotate_limit: 15
+        border_mode: 0
+        
+    - name: OpticalDistortion
+      probability: 0.3
+      params:
+        distort_limit: 0.05
+        border_mode: 0
+        
+    - name: GridDistortion
+      probability: 0.2
+      params:
+        num_steps: 5
+        distort_limit: 0.3
+        border_mode: 0
+        
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 1.0
+        sigma: 50.0
+        border_mode: 0
+        
+    - name: PadIfNeeded
+      probability: 0.2
+      params:
+        min_height: 384
+        min_width: 384
+        border_mode: 0
+        
+    - name: Transpose
+      probability: 0.2
+      params: {}
+      
+    - name: RandomBrightnessContrast
+      probability: 0.2
+      params:
+        brightness_limit: 0.1
+        contrast_limit: 0.1
+
+
+# CURRENT CLASS DISTRIBUTION:
+# ==============================
+# I2-Defect   |  64,661  |  89.7%  <- TARGET anchor, no augmentation
+# I1-Scratch  |   6,901  |   9.6%  <- 9x augmentation -> ~62,109
+# Particle    |     551  |   0.8%  <- 30x augmentation -> ~16,530 (max realistic)
+# Total: 72,113 annotations across 3 classes
+#
+# NOTE: Particle will remain under-represented (~16,500 vs ~64,000).
+#       Recommend compensating with class weights during training.
+
+class_specific:
+
+  # DOMINANT CLASS - No augmentation needed (64,661 samples = target)
+  I2-Defect:
+    num_augmentations_per_image: 0
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+
+  # RARE CLASS - Heavy augmentation (6,901 samples -> ~62,109)
+  # 6,901 * 9 = 62,109
+  I1-Scratch:
+    num_augmentations_per_image: 9
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.7
+        params: {}
+      - name: VerticalFlip
+        probability: 0.7
+        params: {}
+      - name: RandomRotate90
+        probability: 0.7
+        params: {}
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.4
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.3
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+      - name: Transpose
+        probability: 0.3
+        params: {}
+      - name: RandomBrightnessContrast
+        probability: 0.3
+        params:
+          brightness_limit: 0.15
+          contrast_limit: 0.15
+
+  # EXTREMELY RARE CLASS - Max realistic augmentation (551 samples -> ~16,530)
+  # 551 * 30 = 16,530  (remaining gap covered by class weights during training)
+  Particle:
+    num_augmentations_per_image: 100
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.8
+        params: {}
+      - name: VerticalFlip
+        probability: 0.8
+        params: {}
+      - name: RandomRotate90
+        probability: 0.7
+        params: {}
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.8
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.6
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.5
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.5
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+      - name: Transpose
+        probability: 0.5
+        params: {}
+      - name: RandomBrightnessContrast
+        probability: 0.5
+        params:
+          brightness_limit: 0.15
+          contrast_limit: 0.15
+      - name: PadIfNeeded
+        probability: 0.3
+        params:
+          min_height: 192
+          min_width: 192
+          border_mode: 0
+
+# Validation settings
+validation:
+  enabled: true
+  min_defect_area: 1
+  max_defect_area: null
+  min_contour_points: 3
+  check_defect_preservation: true
+  max_area_change_ratio: 0.7
+  reject_border_defects: false
+  border_margin: 5
+
+# Color palette for visualization
+visualization:
+  auto_generate_colors: true
+  custom_colors:
+    I2-Defect: [255, 0, 0]
+    I1-Scratch: [0, 255, 0]
+    Particle: [0, 0, 255]
+  default_colors:
+    - [255, 0, 0]
+    - [0, 255, 0]
+    - [0, 0, 255]
+    - [255, 255, 0]
+    - [255, 0, 255]
+    - [0, 255, 255]
+    - [128, 0, 0]
+    - [0, 128, 0]
+    - [0, 0, 128]
+    - [128, 128, 0]
+
+# Image format handling
+image_processing:
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  output_format: 'png'
+  output_quality: 95
+  normalize_16bit: true
+  convert_to_rgb: true
+  handle_grayscale: true
+  handle_rgba: true
+  validate_loaded_images: true
+  min_image_size: [192, 192]
+  max_image_size: [256, 256]

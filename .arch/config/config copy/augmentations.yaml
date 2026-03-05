@@ -1,0 +1,199 @@
+# Augmentation Configurations
+# Define augmentation strategies and parameters
+
+# Global augmentation templates
+augmentation_templates:
+  # Safe geometric transformations
+  safe_geometric:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+    - name: VerticalFlip
+      probability: 0.4
+      params: {}
+    - name: Transpose
+      probability: 0.3
+      params: {}
+    - name: RandomRotate90
+      probability: 0.3
+      params: {}
+      
+  # Conservative geometric (for sensitive defects)
+  conservative_geometric:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+    - name: VerticalFlip
+      probability: 0.5
+      params: {}
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-5, 5]
+        
+  # Standard geometric with rotation
+  standard_geometric:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+    - name: VerticalFlip
+      probability: 0.4
+      params: {}
+    - name: Rotate
+      probability: 0.5
+      params:
+        limit: [-15, 15]
+    - name: Transpose
+      probability: 0.3
+      params: {}
+      
+  # Aggressive geometric
+  aggressive_geometric:
+    - name: HorizontalFlip
+      probability: 0.6
+      params: {}
+    - name: VerticalFlip
+      probability: 0.6
+      params: {}
+    - name: Rotate
+      probability: 0.6
+      params:
+        limit: [-30, 30]
+    - name: ShiftScaleRotate
+      probability: 0.4
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.1
+        rotate_limit: 15
+        
+  # Color and intensity augmentations
+  standard_color:
+    - name: RandomBrightnessContrast
+      probability: 0.3
+      params:
+        brightness_limit: [-0.1, 0.1]
+        contrast_limit: [-0.1, 0.1]
+    - name: RandomGamma
+      probability: 0.3
+      params:
+        gamma_limit: [90, 110]
+    - name: CLAHE
+      probability: 0.4
+      params:
+        clip_limit: 2.0
+        tile_grid_size: [8, 8]
+        
+  # Conservative color (for color-sensitive defects)
+  conservative_color:
+    - name: RandomBrightnessContrast
+      probability: 0.2
+      params:
+        brightness_limit: [-0.03, 0.03]
+        contrast_limit: [-0.03, 0.03]
+    - name: RandomGamma
+      probability: 0.2
+      params:
+        gamma_limit: [98, 102]
+        
+  # Enhancement augmentations
+  enhancement:
+    - name: Sharpen
+      probability: 0.3
+      params:
+        alpha: [0.1, 0.3]
+        lightness: [0.8, 1.2]
+    - name: UnsharpMask
+      probability: 0.2
+      params:
+        blur_limit: 3
+        sigma_limit: 1.0
+        alpha: 0.2
+        threshold: 10
+        
+  # Noise and artifacts
+  noise:
+    - name: GaussNoise
+      probability: 0.2
+      params:
+        var_limit: 10
+    - name: ISONoise
+      probability: 0.15
+      params:
+        color_shift: [0.005, 0.015]
+        intensity: [0.05, 0.15]
+        
+  # Manufacturing environment simulation
+  manufacturing:
+    - name: ManufacturingNoiseSimulator
+      probability: 0.3
+      params:
+        dust_probability: 0.3
+        lighting_variation: 0.2
+
+# Predefined augmentation strategies
+augmentation_strategies:
+  # For color-sensitive defects
+  color_sensitive:
+    templates:
+      - conservative_geometric
+      - conservative_color
+      - enhancement
+    exclude_augmentations:
+      - RandomBrightnessContrast  # If not in conservative_color
+      - HueSaturationValue
+      - ColorJitter
+      - ToGray
+      - ToSepia
+      - Solarize
+      - Posterize
+      
+  # For size-sensitive defects  
+  size_sensitive:
+    templates:
+      - safe_geometric
+      - standard_color
+      - enhancement
+    exclude_augmentations:
+      - RandomScale
+      - Resize
+      - Downscale
+      - RandomSizedCrop
+      - CropAndPad
+      
+  # For linear defects
+  linear_defects:
+    templates:
+      - standard_geometric
+      - standard_color
+      - enhancement
+      - noise
+      
+  # For spot defects
+  spot_defects:
+    templates:
+      - safe_geometric
+      - standard_color
+      - enhancement
+      
+  # Standard strategy for non-sensitive defects
+  standard:
+    templates:
+      - standard_geometric
+      - standard_color
+      - enhancement
+      - noise
+      
+  # Aggressive strategy for robust defects
+  aggressive:
+    templates:
+      - aggressive_geometric
+      - standard_color
+      - enhancement
+      - noise
+      - manufacturing
+      
+  # Conservative strategy for very sensitive defects
+  conservative:
+    templates:
+      - conservative_geometric
+      - conservative_color

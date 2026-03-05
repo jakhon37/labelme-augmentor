@@ -1,0 +1,82 @@
+# Segmentation Configuration for Scratch and Stripe Detection
+# Proper segmentation format to preserve thin scratch details
+
+# Project info
+project:
+  name: "Segmentation Scratch-Stripe Augmentation"
+  version: "1.0.0"
+
+# Dataset settings  
+dataset:
+  input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/dataSEG_v1/labelsME_seg_all_clean_STRIPE_SCRATCH/all_split_chunk/val/
+  output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/dataSEG_v1/labelsME_seg_all_clean_STRIPE_SCRATCH/all_split_chunk_segaug/valnewtest
+  mode: multi_class
+  format: yolo_seg  # ✅ SEGMENTATION format (not bbox!)
+  target_count: 100
+  augmentations_per_image: 3
+
+# System settings
+system:
+  num_workers: 4
+  seed: 42
+  resize_dim: null  # Keep original size to preserve thin features
+
+# Defect classes (0=Stripe, 1=Scratch)
+classes:
+  0: T15-Stripe
+  1: T1-Scratch
+
+# Sensitivity settings - special handling for linear defects
+sensitivity:
+  color_sensitive: []  # Neither stripe nor scratch are color-sensitive
+  size_sensitive: [T1-Scratch]  # Scratch is very size-sensitive (thin)
+  linear_defects: [T1-Scratch, T15-Stripe]  # Both are linear
+  min_defect_area: 100  # Minimum pixels in mask (not bbox area)
+
+# Segmentation-safe augmentations (preserve polygon integrity)
+global_augmentations:
+  - name: HorizontalFlip
+    probability: 0.8  # Safe for segmentation
+  - name: VerticalFlip  
+    probability: 0.8  # Safe for segmentation
+  - name: Rotate
+    probability: 0.5  # Limited rotation
+    params:
+      limit: [-15, 15]  # Conservative rotation for thin lines
+  - name: Transpose
+    probability: 0.4  # Safe geometric transform
+  # Avoid augmentations that can distort thin polygons:
+  # - ElasticTransform, GridDistortion, OpticalDistortion
+
+# Class-specific optimizations for segmentation
+class_overrides:
+  # Ultra-conservative settings for scratch (class 1)
+  T1-Scratch:
+    exclude: [ElasticTransform, GridDistortion, OpticalDistortion, RandomCrop]
+    conservative_rotation: 10  # Maximum 10 degrees for thin scratches
+    
+  # Standard settings for stripe (class 0) - more robust
+  T15-Stripe:
+    exclude: [ElasticTransform, GridDistortion]  # Still avoid extreme distortions
+    conservative_rotation: 20  # Can handle more rotation
+
+# Segmentation-specific validation (much more lenient for thin masks)
+validation:
+  # Segmentation validation (primary)
+  min_mask_area: 50         # Much lower than default 100 (for thin scratches)
+  
+  # Bounding box validation (fallback - very lenient)
+  min_bbox_width: 0.0001    # Extremely lenient for thin lines
+  min_bbox_height: 0.0001   # Extremely lenient for thin lines
+  min_bbox_area: 0.00000001 # Extremely lenient total area
+  min_visibility: 0.1       # Allow very low visibility for thin objects
+  
+  # Processing settings
+  max_retries: 20           # More retries for difficult thin objects
+
+# Conservative mode for scratch preservation
+conservative_mode:
+  enabled: true
+  max_rotation: 12          # Reduced rotation for segmentation
+  max_brightness_change: 0.03  # Very conservative
+  max_contrast_change: 0.03    # Very conservative

@@ -1,0 +1,124 @@
+# Processing Configuration
+# Define processing parameters and system settings
+
+# System and performance settings
+system:
+  # Threading and parallelization
+  threading:
+    num_workers: null           # null = auto-detect, or specify number
+    max_workers: 8              # Maximum number of workers (safety cap)
+    batch_size: 32              # Batch size for processing
+    use_multiprocessing: false  # Use multiprocessing instead of threading
+    
+  # Memory management
+  memory:
+    max_memory_usage_gb: 8      # Maximum memory usage in GB
+    clear_cache_interval: 100   # Clear cache every N images
+    use_memory_mapping: false   # Use memory mapping for large files
+    
+  # Random seed and reproducibility
+  reproducibility:
+    seed: 42                    # Global random seed
+    deterministic: true         # Use deterministic algorithms when possible
+    
+# Image processing settings
+image_processing:
+  # Resize settings
+  resize:
+    default_size: [1280, 1280]  # Default resize dimensions [width, height]
+    interpolation: 'linear'      # 'linear', 'cubic', 'nearest', 'area'
+    maintain_aspect_ratio: false # Maintain aspect ratio when resizing
+    
+  # Quality settings
+  quality:
+    jpeg_quality: 95            # JPEG compression quality (1-100)
+    png_compression: 6          # PNG compression level (0-9)
+    preserve_metadata: false    # Preserve image metadata
+    
+  # Color space settings
+  color_space:
+    input_format: 'BGR'         # Input color format ('BGR', 'RGB')
+    output_format: 'BGR'        # Output color format
+    normalize: false            # Normalize pixel values to 0-1
+    
+# Dataset processing settings
+dataset:
+  # Input/output settings
+  paths:
+    input_structure: 'yolo'     # 'yolo', 'coco', 'flat'
+    output_structure: 'yolo'    # Output directory structure
+    create_backup: false        # Create backup of original data
+    
+  # File naming conventions
+  naming:
+    original_prefix: 'orig_'    # Prefix for original images
+    augmented_prefix: 'aug_'    # Prefix for augmented images
+    use_timestamps: false       # Include timestamps in filenames
+    zero_padding: 5             # Number of digits for counters (00001)
+    
+  # Target counts and distribution
+  targets:
+    default_target_count: 5000  # Default target number of images
+    augmentations_per_image: 5  # Default augmentations per original
+    balance_classes: false      # Balance class distribution
+    min_samples_per_class: 100  # Minimum samples per class (if balancing)
+    
+# Logging and monitoring
+logging:
+  # Log levels and output
+  level: 'INFO'                 # 'DEBUG', 'INFO', 'WARNING', 'ERROR'
+  log_to_file: true            # Save logs to file
+  log_file: 'augmentation.log' # Log file name
+  
+  # Progress tracking
+  progress:
+    show_progress_bar: true     # Show tqdm progress bars
+    update_interval: 1          # Progress update interval (seconds)
+    show_eta: true              # Show estimated time remaining
+    
+  # Statistics and reporting
+  statistics:
+    save_statistics: true       # Save detailed statistics
+    include_timing: true        # Include timing information
+    include_memory_usage: true  # Include memory usage stats
+    
+# Error handling and recovery
+error_handling:
+  # Retry settings
+  retry:
+    max_global_retries: 3       # Maximum retries for entire process
+    retry_delay: 1.0            # Delay between retries (seconds)
+    exponential_backoff: true   # Use exponential backoff
+    
+  # Error recovery
+  recovery:
+    continue_on_error: true     # Continue processing on non-critical errors
+    save_failed_images: true    # Save list of failed images
+    fallback_to_original: true  # Use original if augmentation fails
+    
+  # Validation on errors
+  validation:
+    validate_outputs: true      # Validate output files
+    check_file_integrity: true  # Check file integrity
+    verify_bbox_count: true     # Verify bbox count matches
+
+# Output generation settings
+output:
+  # Dataset configuration files
+  dataset_config:
+    generate_yaml: true         # Generate dataset.yaml for YOLO
+    include_metadata: true      # Include metadata in config
+    include_statistics: true    # Include processing statistics
+    
+  # Report generation
+  reports:
+    generate_report: true       # Generate execution report
+    include_config: true        # Include configuration in report
+    include_pipeline_info: true # Include pipeline information
+    report_format: 'json'       # 'json', 'yaml', 'txt'
+    
+  # Visualization (optional)
+  visualization:
+    generate_samples: false     # Generate sample augmented images
+    sample_count: 10            # Number of samples to generate
+    show_bboxes: true          # Show bounding boxes in samples

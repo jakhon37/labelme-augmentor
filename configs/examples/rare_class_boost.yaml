@@ -1,0 +1,57 @@
+# Example: Boosting Rare Classes
+# Use this when you have severely imbalanced classes
+
+general:
+  seed: 42
+  num_workers: 4
+
+paths:
+  input_json_dir: "data/imbalanced/train"
+  output_dir: "data/balanced/train"
+
+# Conservative global augmentations
+global_augmentations:
+  num_augmentations_per_image: 5
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5
+
+# Aggressive augmentation for rare classes
+class_specific:
+  # Extremely rare (10 samples -> 500 target)
+  RareDefect1:
+    num_augmentations_per_image: 50
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.9
+      - name: VerticalFlip
+        probability: 0.9
+      - name: Rotate
+        probability: 0.9
+        params:
+          limit: [-45, 45]
+      - name: RandomRotate90
+        probability: 0.9
+      - name: ShiftScaleRotate
+        probability: 0.7
+  
+  # Very rare (50 samples -> 500 target)
+  RareDefect2:
+    num_augmentations_per_image: 10
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.8
+      - name: VerticalFlip
+        probability: 0.8
+      - name: Rotate
+        probability: 0.6
+        params:
+          limit: [-30, 30]
+
+validation:
+  enabled: true
+  min_defect_area: 15
+  check_defect_preservation: true
+  max_area_change_ratio: 0.6  # More lenient for aggressive augmentation

@@ -1,0 +1,112 @@
+# Complete Example Configuration
+# Shows all available options with explanations
+
+general:
+  seed: 42                           # Random seed for reproducibility
+  num_workers: null                  # Number of workers (null = auto-detect)
+  log_level: INFO                    # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  enable_base64: false               # Embed images in JSON as base64
+  resume_from_checkpoint: true       # Resume from checkpoint
+  checkpoint_file: checkpoint.json   # Checkpoint filename
+
+paths:
+  input_json_dir: "/path/to/labelme/json/files"
+  output_dir: "/path/to/output"
+
+output:
+  images_subdir: "images"            # Subdirectory for images
+  annotations_subdir: "annotations"  # Subdirectory for JSON files
+  debug_subdir: "debug"              # Subdirectory for debug visualizations
+  create_debug_visualizations: true  # Create debug overlays
+
+global_augmentations:
+  num_augmentations_per_image: 5     # Augmentations per image
+  transforms:
+    # Geometric transforms
+    - name: HorizontalFlip
+      probability: 0.5
+    
+    - name: VerticalFlip
+      probability: 0.5
+    
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-15, 15]             # Rotation range in degrees
+    
+    - name: ShiftScaleRotate
+      probability: 0.3
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.1
+        rotate_limit: 15
+    
+    # Perspective transforms
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 1
+        sigma: 50
+    
+    - name: GridDistortion
+      probability: 0.2
+    
+    - name: OpticalDistortion
+      probability: 0.2
+
+# Class-specific overrides
+class_specific:
+  # Rare defect - needs more augmentation
+  T2-Depress:
+    num_augmentations_per_image: 50
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.9
+      - name: VerticalFlip
+        probability: 0.9
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: [-45, 45]
+  
+  # Color-sensitive defect - avoid color changes
+  T10-Discoloration:
+    num_augmentations_per_image: 20
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      # No color transforms
+
+validation:
+  enabled: true                      # Enable validation
+  min_defect_area: 20                # Minimum defect area in pixels
+  max_defect_area: null              # Maximum defect area (null = no limit)
+  min_contour_points: 3              # Minimum contour points
+  check_defect_preservation: true    # Check defects are preserved
+  max_area_change_ratio: 0.5         # Max allowed area change (0-1)
+  reject_border_defects: false       # Reject defects touching border
+  border_margin: 5                   # Border margin in pixels
+
+visualization:
+  auto_generate_colors: true         # Auto-generate unlimited colors
+  custom_colors:                     # Custom colors per class
+    T2-Depress: [255, 0, 0]         # Red
+    T10-Discoloration: [0, 255, 0]  # Green
+  default_colors:                    # Default palette
+    - [255, 0, 0]
+    - [0, 255, 0]
+    - [0, 0, 255]
+    - [255, 255, 0]
+
+image_processing:
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp']
+  output_format: png                 # Output format: png, jpg
+  output_quality: 95                 # JPEG quality (1-100)
+  normalize_16bit: true              # Convert 16-bit to 8-bit
+  handle_grayscale: true             # Convert grayscale to RGB
+  handle_rgba: true                  # Convert RGBA to RGB
+  validate_loaded_images: true       # Validate image dimensions
+  min_image_size: [32, 32]           # Minimum [width, height]
+  max_image_size: [8192, 8192]       # Maximum [width, height]

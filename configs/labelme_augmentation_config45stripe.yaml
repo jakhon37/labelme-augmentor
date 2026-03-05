@@ -1,0 +1,255 @@
+# LabelMe Augmentation Configuration - Updated Class Distribution
+# Complete configuration for flexible augmentation with per-class settings
+# Target: ~1,700-1,800 samples per class for balanced dataset
+
+# General settings
+general:
+  seed: 42
+  num_workers: null  # null = auto-detect cores, or specify number
+  log_level: DEBUG  # File logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL  
+  enable_base64: false  # Set to false to save disk space and processing time
+  checkpoint_file: "augmentation_checkpoint.json"  # Resume from checkpoint
+  resume_from_checkpoint: true  # Enable checkpoint/resume functionality
+  
+# Logging configuration
+logging:
+  log_to_file: true          # Save logs to file
+  log_to_console: true       # Show logs in console
+  console_level: ERROR       # Console level (less verbose than file)
+  log_filename: null         # null = auto-generate with timestamp
+  # log_filename: "my_augmentation.log"  # Or specify custom name
+
+# Input/Output paths
+paths:
+  # input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/BLACK45/STRIPE/black45stripe_chunk_02_18/defect_split_even/val"  # Directory with original LabelMe JSON files
+  # output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/BLACK45/STRIPE/black45stripe_chunk_02_18/defect_split_even/val_aug_02_18"
+
+  input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/BLACK45/STRIPE/black45stripe_chunk_02_18/defect_split_even/train"  # Directory with original LabelMe JSON files
+  output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/BLACK45/STRIPE/black45stripe_chunk_02_18/defect_split_even/train_aug_02_18"
+  
+# Output structure
+output:
+  images_subdir: "imagesLB"
+  annotations_subdir: "imagesLB"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentation settings (applied to all classes unless overridden)
+global_augmentations:
+  num_augmentations_per_image: 0  # How many augmented versions per image
+  
+  # Augmentation pipeline
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+      
+    - name: VerticalFlip
+      probability: 0.3
+      params: {}
+      
+    - name: RandomRotate90
+      probability: 0.5
+      params: {}
+      
+    - name: Rotate
+      probability: 0.4
+      params:
+        limit: 30
+        border_mode: 0
+        
+    - name: ShiftScaleRotate
+      probability: 0.5
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.15
+        rotate_limit: 15
+        border_mode: 0
+        
+    - name: OpticalDistortion
+      probability: 0.3
+      params:
+        distort_limit: 0.05
+        border_mode: 0
+        
+    - name: GridDistortion
+      probability: 0.2
+      params:
+        num_steps: 5
+        distort_limit: 0.3
+        border_mode: 0
+        
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 1.0
+        sigma: 50.0
+        border_mode: 0
+        
+    - name: PadIfNeeded
+      probability: 0.2
+      params:
+        min_height: 384
+        min_width: 384
+        border_mode: 0
+        
+    - name: Transpose
+      probability: 0.2
+      params: {}
+      
+    - name: RandomBrightnessContrast
+      probability: 0.2
+      params:
+        brightness_limit: 0.1
+        contrast_limit: 0.1
+
+
+
+# NEW CLASS DISTRIBUTION:
+# ==============================
+# T15-Stripe           |   7867 |  57.4% -> NO augmentation (dominant class)
+# normal               |   4271 |  31.2% -> NO augmentation (not a defect class)
+# T15-StripeBlack      |   1564 |  11.4% -> Minimal augmentation to reach ~1,700
+
+class_specific:
+
+  # DOMINANT CLASS - No augmentation needed (already 7,867 samples - far above target)
+  # Strategy: Keep original samples only
+  T15-Stripe:
+    num_augmentations_per_image: 3  # Very light augmentation - only 10% of images
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.6
+        params: {}
+      - name: VerticalFlip
+        probability: 0.6
+        params: {}
+      - name: RandomRotate90
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.5
+        params:
+          limit: 20
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.5
+        params:
+          shift_limit: 0.1
+          scale_limit: 0.15
+          rotate_limit: 15
+          border_mode: 0
+      - name: RandomBrightnessContrast
+        probability: 0.0
+        params:
+          brightness_limit: 0.05
+          contrast_limit: 0.05
+
+  # NOT A DEFECT CLASS - No augmentation
+  # This is the "normal" class and shouldn't be augmented
+  normal:
+    num_augmentations_per_image: 3  # No augmentation for normal class
+    transforms: []
+
+  # NEAR TARGET CLASS - Minimal augmentation (1564 samples -> ~1,700 target)
+  # 1564 + (1564 * 0.1) = ~1,720 samples
+  T15-StripeBlack:
+    num_augmentations_per_image: 18  # Very light augmentation - only 10% of images
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.6
+        params: {}
+      - name: VerticalFlip
+        probability: 0.6
+        params: {}
+      - name: RandomRotate90
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.5
+        params:
+          limit: 20
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.5
+        params:
+          shift_limit: 0.1
+          scale_limit: 0.15
+          rotate_limit: 15
+          border_mode: 0
+      - name: RandomBrightnessContrast
+        probability: 0.0
+        params:
+          brightness_limit: 0.05
+          contrast_limit: 0.05
+
+# Validation settings
+validation:
+  enabled: true
+  
+  # Minimum defect area after augmentation (in pixels)
+  min_defect_area: 1
+  
+  # Maximum defect area (to filter out artifacts)
+  max_defect_area: null  # null = no limit
+  
+  # Minimum number of contour points
+  min_contour_points: 3
+  
+  # Check if augmentation significantly changed the defect
+  check_defect_preservation: true
+  max_area_change_ratio: 0.5  # Reject if area changed more than 50%
+  
+  # Reject augmentations where defects touch image border
+  reject_border_defects: false
+  border_margin: 5  # pixels
+
+# Color palette for visualization
+visualization:
+  auto_generate_colors: true  # Generate unlimited colors
+  custom_colors:  # Optional: define specific colors for classes
+    # Format: [R, G, B]
+    T15-Stripe: [255, 0, 0]
+    T15-StripeBlack: [128, 0, 0]
+    normal: [200, 200, 200]
+    T1-Scratch: [0, 255, 0]
+    T2-Depress: [0, 0, 255]
+    T4-AbrasionScratch: [255, 255, 0]
+    T9-DarkDot: [255, 0, 255]
+    T10-Discoloration: [0, 255, 255]
+    T17-Fiber: [255, 128, 0]
+  default_colors:
+    - [255, 0, 0]    # Red
+    - [0, 255, 0]    # Green
+    - [0, 0, 255]    # Blue
+    - [255, 255, 0]  # Yellow
+    - [255, 0, 255]  # Magenta
+    - [0, 255, 255]  # Cyan
+    - [128, 0, 0]    # Maroon
+    - [0, 128, 0]    # Dark Green
+    - [0, 0, 128]    # Navy
+    - [128, 128, 0]  # Olive
+
+# Image format handling
+image_processing:
+  # Supported input formats
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  
+  # Output format
+  output_format: 'png'  # 'png', 'jpg', etc.
+  output_quality: 95  # For JPEG
+  
+  # Handle different bit depths
+  normalize_16bit: true  # Convert 16-bit to 8-bit
+  
+  # Handle different color spaces
+  convert_to_rgb: true
+  
+  # Handle different channel counts
+  handle_grayscale: true  # Convert to RGB
+  handle_rgba: true  # Remove alpha channel
+  
+  # Image validation
+  validate_loaded_images: true
+  min_image_size: [256, 256]  # [width, height]
+  max_image_size: [1280, 1280]

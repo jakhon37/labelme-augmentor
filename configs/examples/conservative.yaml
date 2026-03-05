@@ -1,0 +1,42 @@
+# Example: Conservative Augmentation
+# Use this for sensitive defects or production use
+
+general:
+  seed: 42
+  num_workers: null
+
+paths:
+  input_json_dir: "data/sensitive/train"
+  output_dir: "data/augmented/train"
+
+# Light augmentation only
+global_augmentations:
+  num_augmentations_per_image: 3
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-5, 5]  # Very small rotation
+
+# No class-specific overrides
+class_specific: {}
+
+# Strict validation
+validation:
+  enabled: true
+  min_defect_area: 30            # Larger minimum
+  max_defect_area: 10000         # Set maximum
+  min_contour_points: 5          # More points required
+  check_defect_preservation: true
+  max_area_change_ratio: 0.3     # Strict preservation
+  reject_border_defects: true    # Reject border defects
+  border_margin: 10
+
+image_processing:
+  output_format: png             # Lossless format
+  validate_loaded_images: true
+  min_image_size: [64, 64]       # Larger minimum

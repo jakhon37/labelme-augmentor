@@ -1,0 +1,153 @@
+# Defect Classes Configuration
+# Define all defect classes and their properties
+
+# Class ID to Name mapping
+class_mapping:
+  0: T1-Scratch
+  1: T2-Depress
+  2: T4-AbrasionScratch
+  3: T5-WhiteDot
+  4: T7-MultipleDot
+  5: T8-LightDot
+  6: T9-DarkDot
+  7: T10-Discoloration
+  8: T13-ShinyDot
+  9: T14-MatteDot
+  10: T15-Stripe
+  11: T18-EmbeddedForeignFiber
+  12: T19-BlackLine
+  13: T20-ShortScratch
+
+# Class properties and characteristics
+class_properties:
+  T1-Scratch:
+    type: linear
+    description: "Linear defects on surface"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+    
+  T2-Depress:
+    type: indentation
+    description: "Indentation defects"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+    
+  T4-AbrasionScratch:
+    type: surface_damage
+    description: "Surface abrasions and scratches"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+    
+  T5-WhiteDot:
+    type: spot
+    description: "Small white spots"
+    color_sensitive: true
+    size_sensitive: true
+    min_area: 40  # pixels²
+    
+  T7-MultipleDot:
+    type: spot
+    description: "Multiple small dots"
+    color_sensitive: false
+    size_sensitive: true
+    min_area: 40
+    
+  T8-LightDot:
+    type: spot
+    description: "Light-colored dots"
+    color_sensitive: true
+    size_sensitive: true
+    min_area: 40
+    
+  T9-DarkDot:
+    type: spot
+    description: "Dark-colored dots"
+    color_sensitive: true
+    size_sensitive: true
+    min_area: 40
+    
+  T10-Discoloration:
+    type: color_variation
+    description: "Color variations and discoloration"
+    color_sensitive: true
+    size_sensitive: false
+    min_area: null
+    max_color_change: 0.05  # Very sensitive to color changes
+    
+  T13-ShinyDot:
+    type: spot
+    description: "Reflective spots"
+    color_sensitive: true
+    size_sensitive: true
+    min_area: 40
+    
+  T14-MatteDot:
+    type: spot
+    description: "Non-reflective spots"
+    color_sensitive: true
+    size_sensitive: true
+    min_area: 40
+    
+  T15-Stripe:
+    type: linear
+    description: "Linear patterns and stripes"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+    
+  T18-EmbeddedForeignFiber:
+    type: foreign_material
+    description: "Foreign material embedded in surface"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+    
+  T19-BlackLine:
+    type: linear
+    description: "Dark linear defects"
+    color_sensitive: true
+    size_sensitive: false
+    min_area: null
+    
+  T20-ShortScratch:
+    type: linear
+    description: "Short linear defects"
+    color_sensitive: false
+    size_sensitive: false
+    min_area: null
+
+# Grouping by sensitivity type for easy reference
+sensitivity_groups:
+  color_sensitive:
+    - T5-WhiteDot
+    - T8-LightDot
+    - T9-DarkDot
+    - T10-Discoloration
+    - T13-ShinyDot
+    - T14-MatteDot
+    - T19-BlackLine
+    
+  size_sensitive:
+    - T5-WhiteDot
+    - T7-MultipleDot
+    - T8-LightDot
+    - T9-DarkDot
+    - T13-ShinyDot
+    - T14-MatteDot
+    
+  linear_defects:
+    - T1-Scratch
+    - T15-Stripe
+    - T19-BlackLine
+    - T20-ShortScratch
+    
+  spot_defects:
+    - T5-WhiteDot
+    - T7-MultipleDot
+    - T8-LightDot
+    - T9-DarkDot
+    - T13-ShinyDot
+    - T14-MatteDot

@@ -1,0 +1,80 @@
+# Optimized Configuration for Scratch and Stripe Detection
+# Addresses the issue of thin linear defects being lost during augmentation
+
+# Project info
+project:
+  name: "Scratch-Optimized Augmentation"
+  version: "1.0.0"
+
+# Dataset settings  
+dataset:
+  input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/dataSEG_v1/labelsME_seg_all_clean_STRIPE_SCRATCH/all_split_chunk/val/
+  output_dir: augmented_scratch_stripe/
+  mode: multi_class
+  format: yolo  # Using bbox format for now
+  target_count: 1000
+  augmentations_per_image: 3
+
+# System settings
+system:
+  num_workers: 4
+  seed: 42
+  resize_dim: null  # Keep original size to preserve thin features
+
+# Defect classes (0=Stripe, 1=Scratch)
+classes:
+  0: T15-Stripe
+  1: T1-Scratch
+
+# Sensitivity settings - special handling for linear defects
+sensitivity:
+  color_sensitive: []  # Neither stripe nor scratch are color-sensitive
+  size_sensitive: [T1-Scratch]  # Scratch is very size-sensitive (thin)
+  linear_defects: [T1-Scratch, T15-Stripe]  # Both are linear
+  min_defect_area: 10  # Much lower threshold for linear defects
+
+# Conservative augmentations for linear defects
+global_augmentations:
+  - name: HorizontalFlip
+    probability: 0.7  # Safe for linear defects
+  - name: VerticalFlip  
+    probability: 0.7  # Safe for linear defects
+  - name: Rotate
+    probability: 0.4  # Limited rotation to preserve thin features
+    params:
+      limit: [-10, 10]  # Very conservative rotation
+  # Removed aggressive augmentations that can break thin lines
+
+# Class-specific optimizations
+class_overrides:
+  # Ultra-conservative settings for scratch (class 1)
+  T1-Scratch:
+    exclude: [RandomBrightnessContrast, CLAHE, Sharpen, RandomGamma]  # Avoid any intensity changes
+    conservative_rotation: 5  # Maximum 5 degrees
+    min_visibility: 0.2  # Much lower visibility threshold
+    
+  # Standard settings for stripe (class 0) 
+  T15-Stripe:
+    exclude: []  # Stripe is more robust
+    conservative_rotation: 15  # Can handle more rotation
+
+# Optimized validation for thin defects
+validation:
+  # Much more lenient validation for thin linear defects
+  min_bbox_width: 0.0005   # Reduced from 0.002 (5x more lenient)
+  min_bbox_height: 0.0005  # Reduced from 0.002 (5x more lenient) 
+  min_bbox_area: 0.0000005 # Reduced from 0.000004 (8x more lenient)
+  min_visibility: 0.2      # Reduced from 0.5 (allow partially visible)
+  
+  # Segmentation validation (if using segmentation format)
+  min_mask_area: 20        # Reduced from 100 (5x more lenient)
+  
+  # Increased retries for difficult augmentations
+  max_retries: 15          # Increased from 10
+
+# Conservative mode enabled for scratch preservation
+conservative_mode:
+  enabled: true
+  max_rotation: 8          # Reduced from default
+  max_brightness_change: 0.02  # Very conservative
+  max_contrast_change: 0.02    # Very conservative

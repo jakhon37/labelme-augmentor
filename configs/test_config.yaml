@@ -1,0 +1,266 @@
+# /home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/WHITE45/white45__crp_chunk02_13/defect_split_even/val
+
+# ==============================================================================
+# CLASS-SPECIFIC VALIDATION EXAMPLE
+# ==============================================================================
+# This example demonstrates per-class validation parameter overrides.
+# Each defect type can have its own validation rules while falling back to
+# global settings when not specified.
+#
+# Use case: Different defect types have different characteristics:
+# - Small defects (pinhole) need lower area thresholds
+# - Edge defects should avoid borders
+# - Color defects need strict shape preservation
+# - Large defects can tolerate more deformation
+# ==============================================================================
+
+# General settings
+general:
+  seed: 42
+  num_workers: 4  # Parallel processing
+  log_level: "INFO"
+  enable_base64: false
+  resume_from_checkpoint: true
+  checkpoint_file: "augmentation_checkpoint.json"
+
+# Input/Output paths
+paths:
+  input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/WHITE45/white45__crp_chunk02_13/defect_split_even/valtest"
+  output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/WHITE45/white45__crp_chunk02_13/defect_split_even/valtest_aug5_data"
+
+# Output structure
+output:
+  # images_subdir: "images"
+  # annotations_subdir: "annotations"
+  images_subdir: "images"
+  annotations_subdir: "images"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentations (default for all classes)
+global_augmentations:
+  num_augmentations_per_image: 2
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-15, 15]
+        border_mode: 0
+    - name: RandomBrightnessContrast
+      probability: 0.3
+      params:
+        brightness_limit: 0.2
+        contrast_limit: 0.2
+
+# Global validation settings (defaults for all classes)
+validation:
+  enabled: true
+  min_defect_area: 20            # Default: 20 pixels minimum
+  max_defect_area: null         # Default: 50k pixels maximum
+  min_contour_points: 3          # Default: 3 points minimum
+  check_defect_preservation: true # Default: check area preservation
+  max_area_change_ratio: 0.9     # Default: allow 50% area change
+  reject_border_defects: false   # Default: allow defects at borders
+  border_margin: 5               # Default: 5 pixel margin
+
+# ==============================================================================
+# CLASS-SPECIFIC OVERRIDES
+# ==============================================================================
+# Each class can override any validation parameter. Unspecified parameters
+# fall back to the global validation settings above.
+# ==============================================================================
+
+class_specific:
+  
+  # --------------------------------------------------------------------------
+  # COLOR DEFECT: Discoloration / Stain
+  # --------------------------------------------------------------------------
+  # Characteristics: Large area, color-sensitive, shape can vary
+  # Strategy: Higher area threshold, more tolerant to deformation, no color augmentations
+  # --------------------------------------------------------------------------
+  T3-Discoloration:
+    num_augmentations_per_image: 6
+    min_defect_area: 100              # Larger minimum
+    max_defect_area: null           # Can be very large
+    max_area_change_ratio: 0.7        # Very tolerant: 70% change allowed
+    min_contour_points: 3             # Standard requirement
+    check_defect_preservation: true   # Still check but with high tolerance
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.7
+        params: {}
+      - name: VerticalFlip
+        probability: 0.7
+        params: {}
+     
+
+  # --------------------------------------------------------------------------
+  # ROBUST DEFECT: Scratch / Abrasion
+  # --------------------------------------------------------------------------
+  # Characteristics: Linear, robust to augmentation, common defect
+  # Strategy: Standard thresholds, high tolerance to deformation
+  # --------------------------------------------------------------------------
+  T1-Scratch:
+    num_augmentations_per_image: 20    # Standard amount (common defect)
+    min_defect_area: 20            # Default: 20 pixels minimum
+    max_defect_area: null         # Default: 50k pixels maximum
+    min_defect_length: 390             # Scratches are elongated (min 50px length)
+    max_defect_length: 500            # Cap maximum length
+    min_contour_points: 3          # Default: 3 points minimum
+    check_defect_preservation: true # Default: check area preservation
+    max_area_change_ratio: 0.1     # Default: allow 50% area change
+    reject_border_defects: false   # Default: allow defects at borders
+    border_margin: 5               # Default: 5 pixel margin
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.2
+        params: {}
+      - name: VerticalFlip
+        probability: 0.2
+        params: {}
+      - name: RandomRotate90
+        probability: 0.6
+        params: {}
+      - name: Rotate
+        probability: 0.2
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.4
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.3
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+      - name: Transpose
+        probability: 0.3
+        params: {}
+      - name: RandomBrightnessContrast
+        probability: 0.3
+        params:
+          brightness_limit: 0.15
+          contrast_limit: 0.15
+  
+      - name: CenterCrop
+        probability: 0.1
+        params:
+          height: 512
+          width: 512
+      
+      - name: Crop
+        probability: 0.1
+        params:
+          x_min: 10
+          y_min: 10
+          x_max: 500
+          y_max: 500
+      
+      - name: RandomCrop
+        probability: 0.2
+        params:
+          height: 512
+          width: 512
+      
+      - name: RandomSizedCrop
+        probability: 0.2
+        params:
+          min_max_height: [400, 600]
+          size: [512, 512]  # (height, width)
+      
+      - name: RandomResizedCrop
+        probability: 0.2
+        params:
+          size: [512, 512]  # (height, width)
+          scale: [0.8, 1.0]
+          ratio: [0.9, 1.1]
+      
+      - name: CropAndPad
+        probability: 0.2
+        params:
+          px: [-50, 50]
+          keep_size: true
+      
+      - name: RandomScale
+        probability: 0.2
+        params:
+          scale_limit: 0.2
+      
+      - name: LongestMaxSize
+        probability: 0.2
+        params:
+          max_size: 1024
+      
+      - name: SmallestMaxSize
+        probability: 0.2
+        params:
+          max_size: 512
+      
+      - name: Resize
+        probability: 0.2
+        params:
+          height: 512
+          width: 512
+      
+
+# Visualization settings
+visualization:
+  auto_generate_colors: true
+  custom_colors:
+    T1-Scratch: [0, 255, 0]          # Green - common defect (was T4-Scratch)
+    T1-Pinhole: [255, 0, 0]          # Red - critical small defect
+    T2-EdgeCrack: [255, 165, 0]      # Orange - edge issue
+    T3-Discoloration: [255, 255, 0]  # Yellow - color defect
+    T5-EmbeddedForeign: [128, 0, 128] # Purple - rare defect
+    T6-Wrinkle: [0, 255, 255]        # Cyan - flexible defect
+    T7-CriticalDefect: [255, 0, 255] # Magenta - critical
+  default_colors: []
+
+# Image processing
+image_processing:
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  output_format: 'png'
+  output_quality: 95
+  normalize_16bit: true
+  handle_grayscale: true
+  handle_rgba: true
+  validate_loaded_images: true
+  min_image_size: [32, 32]
+  max_image_size: [8192, 8192]
+
+# ==============================================================================
+# VALIDATION PARAMETER REFERENCE
+# ==============================================================================
+# Parameter                  | Description                          | Default
+# ---------------------------|--------------------------------------|--------
+# min_defect_area            | Minimum defect size (pixels)         | 20
+# max_defect_area            | Maximum defect size (pixels)         | None
+# min_contour_points         | Minimum points in contour            | 3
+# check_defect_preservation  | Validate area preservation           | true
+# max_area_change_ratio      | Max allowed area change (0.0-1.0)    | 0.5
+# reject_border_defects      | Reject defects touching borders      | false
+# border_margin              | Border margin distance (pixels)      | 5
+#
+# All parameters are optional per class and fall back to global validation.
+# ==============================================================================

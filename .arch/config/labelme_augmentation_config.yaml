@@ -1,0 +1,226 @@
+# LabelMe Augmentation Configuration
+# Complete configuration for flexible augmentation with per-class settings
+
+# General settings
+general:
+  seed: 42
+  num_workers: null  # null = auto-detect cores, or specify number
+  enable_base64: false  # Set to false to save disk space and processing time
+  checkpoint_file: "augmentation_checkpoint.json"  # Resume from checkpoint
+  resume_from_checkpoint: true  # Enable checkpoint/resume functionality
+  
+# Input/Output paths
+paths:
+  input_json_dir: "/home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/15_45_75_v2/15/white2/white15__crp_patch_size_512_seg_2/defect_yes_labelme"
+  output_dir: "/home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/15_45_75_v2/15/white2/white15__crp_patch_size_512_seg_2/defect_yes_labelme_aug_01_03"
+  
+# Output structure
+output:
+  images_subdir: "images"
+  annotations_subdir: "annotations"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentation settings (applied to all classes unless overridden)
+global_augmentations:
+  num_augmentations_per_image: 0  # How many augmented versions per image
+  
+  # Augmentation pipeline
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+      
+    - name: VerticalFlip
+      probability: 0.3
+      params: {}
+      
+    - name: RandomRotate90
+      probability: 0.5
+      params: {}
+      
+    - name: Rotate
+      probability: 0.4
+      params:
+        limit: 30
+        border_mode: 0
+        
+    - name: ShiftScaleRotate
+      probability: 0.5
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.15
+        rotate_limit: 15
+        border_mode: 0
+        
+    - name: OpticalDistortion
+      probability: 0.3
+      params:
+        distort_limit: 0.05
+        border_mode: 0
+        
+    - name: GridDistortion
+      probability: 0.2
+      params:
+        num_steps: 5
+        distort_limit: 0.3
+        border_mode: 0
+        
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 1
+        sigma: 50
+        border_mode: 0
+        
+    - name: PadIfNeeded
+      probability: 0.2
+      params:
+        min_height: 384
+        min_width: 384
+        border_mode: 0
+        
+    - name: Transpose
+      probability: 0.2
+      params: {}
+      
+    - name: RandomBrightnessContrast
+      probability: 0.2
+      params:
+        brightness_limit: 0.1
+        contrast_limit: 0.1
+
+# Per-class augmentation settings
+# Each class can have its own augmentation count and pipeline
+# T18-Fiber            |   9569 |  48.7%
+# T18-FiberShadow      |   6281 |  32.0%
+# T9-DarkDot           |   1218 |   6.2%
+# T-FiberDot           |    691 |   3.5%
+# T7-MultipleDotTiny   |    658 |   3.4%
+# T8-LightDot          |    593 |   3.0%
+# T4-AbrasionScratch   |    172 |   0.9%
+# T1-Scratch           |    158 |   0.8%
+# T10-Discoloration    |    137 |   0.7%
+# T18-EmbeddedForeignFiber |    120 |   0.6%
+# T2-Depress           |     43 |   0.2%
+class_specific:
+  # Example: Scratch defect - needs more augmentations
+  T1-Scratch:
+    num_augmentations_per_image: 20  # Override global count
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.7
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.6
+        params:
+          shift_limit: 0.15
+          scale_limit: 0.2
+          rotate_limit: 20
+          border_mode: 0
+          
+  # Example: Color-sensitive defect
+  T20-ShortScratch:
+    num_augmentations_per_image: 5
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.3
+        params:
+          limit: 10
+          border_mode: 0
+      # Avoid color transformations
+          
+  # Example: Small defect - conservative augmentation
+  SmallDot:
+    num_augmentations_per_image: 0
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.3
+        params:
+          limit: 5
+          border_mode: 0
+
+# Validation settings
+validation:
+  enabled: true
+  
+  # Minimum defect area after augmentation (in pixels)
+  min_defect_area: 20
+  
+  # Maximum defect area (to filter out artifacts)
+  max_defect_area: null  # null = no limit
+  
+  # Minimum number of contour points
+  min_contour_points: 3
+  
+  # Check if augmentation significantly changed the defect
+  check_defect_preservation: true
+  max_area_change_ratio: 0.5  # Reject if area changed more than 50%
+  
+  # Reject augmentations where defects touch image border
+  reject_border_defects: false
+  border_margin: 5  # pixels
+
+# Color palette for visualization
+visualization:
+  auto_generate_colors: true  # Generate unlimited colors
+  custom_colors:  # Optional: define specific colors for classes
+    # Format: [R, G, B]
+    Scratch: [255, 0, 0]
+    Discoloration: [0, 255, 0]
+    SmallDot: [0, 0, 255]
+  default_colors:
+    - [255, 0, 0]    # Red
+    - [0, 255, 0]    # Green
+    - [0, 0, 255]    # Blue
+    - [255, 255, 0]  # Yellow
+    - [255, 0, 255]  # Magenta
+    - [0, 255, 255]  # Cyan
+    - [128, 0, 0]    # Maroon
+    - [0, 128, 0]    # Dark Green
+    - [0, 0, 128]    # Navy
+    - [128, 128, 0]  # Olive
+
+# Image format handling
+image_processing:
+  # Supported input formats
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  
+  # Output format
+  output_format: 'png'  # 'png', 'jpg', etc.
+  output_quality: 95  # For JPEG
+  
+  # Handle different bit depths
+  normalize_16bit: true  # Convert 16-bit to 8-bit
+  
+  # Handle different color spaces
+  convert_to_rgb: true
+  
+  # Handle different channel counts
+  handle_grayscale: true  # Convert to RGB
+  handle_rgba: true  # Remove alpha channel
+  
+  # Image validation
+  validate_loaded_images: true
+  min_image_size: [32, 32]  # [width, height]
+  max_image_size: [8192, 8192]

@@ -1,0 +1,190 @@
+# Simplified Perfect Augmentation Configuration
+# Single file with only essential, non-redundant settings
+
+# Project info
+project:
+  name: "Perfect Augmentation Pipeline"
+  version: "1.0.0"
+
+# Dataset settings
+dataset:
+  input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5_4/NEW_DATA/val
+  # input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split/val/
+  # input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split/test/
+  mode: single_class  # 'single_class' or 'multi_class'
+  format: yolo
+  target_count: 100
+  # target_count: 5000
+  # target_count: 300
+  augmentations_per_image: 3
+  output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5_4/NEW_DATA_AUG/val
+  # output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split_augnew/val/
+  # output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split_augnew/test/
+
+# # General settings
+# general:
+#   seed: 42  # For reproducibility
+#   output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split_aug/test/
+#   batch_size: 32
+#   num_augmentations_per_image: 5  # How many augmented versions per original
+#   resize_dim: [1280, 1280]  # [width, height] - null to keep original size
+#   target_count: 50  # Target number of total images
+#   num_workers: null  # null = auto-detect, or specify number
+
+
+# System settings
+system:
+  num_workers: null  # null = auto-detect
+  seed: 42
+  # resize_dim: [832, 832]  # [width, height] or null
+  # resize_dim: [1024,1024]
+  resize_dim: [384,384]
+
+# Defect classes (only for multi-class mode)
+classes:
+  # Class ID to name mapping
+  0: T1-Scratch
+  1: T2-Depress
+  2: T4-AbrasionScratch
+  3: T5-WhiteDot
+  4: T7-MultipleDot
+  5: T8-LightDot
+  6: T9-DarkDot
+  7: T10-Discoloration
+  8: T13-ShinyDot
+  9: T14-MatteDot
+  10: T15-Stripe
+  11: T18-EmbeddedForeignFiber
+  12: T19-BlackLine
+  13: T20-ShortScratch
+
+# Sensitivity settings (which classes need special handling)
+sensitivity:
+  color_sensitive: [T5-WhiteDot, T8-LightDot, T9-DarkDot, T10-Discoloration, T13-ShinyDot, T14-MatteDot, T19-BlackLine]
+  size_sensitive: [T5-WhiteDot, T7-MultipleDot, T8-LightDot, T9-DarkDot, T13-ShinyDot, T14-MatteDot]
+  min_defect_area: 40  # pixels² for size-sensitive defects
+
+# Global augmentations (applied to all classes unless overridden)
+global_augmentations:
+  - name: HorizontalFlip
+    probability: 0.9
+  - name: VerticalFlip
+    probability: 0.9
+  - name: Transpose
+    probability: 0.9
+
+  - name: Rotate
+    probability: 0.6
+    params:
+      limit: [-5, 5]
+
+  # # Add these to your config:
+  # - name: RandomCropNearBBox
+  #   probability: 0.9
+  #   params:
+  #     max_part_shift: 0.15  # Very conservative
+      
+  # - name: AtLeastOneBBoxRandomCrop  
+  #   probability: 0.9
+  #   params:
+  #     height: 500  # Slight crop from 1024
+  #     width: 500
+      
+  # - name: BBoxSafeRandomCrop
+  #   probability: 0.9
+  #   params:
+  #     erosion_rate: 0.02  # Minimal erosion
+      
+  - name: Affine
+    probability: 0.9
+  - name: RandomRotate90
+    probability: 0.9
+  - name: ShiftScaleRotate
+    probability: 0.9
+  - name: ElasticTransform
+    probability: 0.9
+  - name: GridDistortion
+    probability: 0.9
+  - name: OpticalDistortion
+    probability: 0.9
+  - name: Perspective
+    probability: 0.9
+
+  # - name: RandomGamma
+  #   probability: 0.4
+  #   params:
+  #     gamma_limit: [90, 110]
+      
+  # - name: GaussNoise
+  #   probability: 0.3
+  #   params:
+  #     var_limit: [5, 20]
+      
+  # - name: Sharpen
+  #   probability: 0.4
+  #   params:
+  #     alpha: [0.1, 0.4]
+
+  # - name: RandomBrightnessContrast
+  #   probability: 0.4
+  #   params:
+  #     brightness_limit: [-0.1, 0.1]
+  #     contrast_limit: [-0.1, 0.1]
+  # - name: CLAHE
+  #   probability: 0.1
+  #   params:
+  #     clip_limit: 2.0
+  #     tile_grid_size: [8, 8]
+  # - name: Sharpen
+  #   probability: 0.1
+  #   params:
+  #     alpha: [0.1, 0.3]
+  #     lightness: [0.8, 1.2]
+
+# # Class-specific overrides (only specify what's different)
+# class_overrides:
+#   # Color-sensitive defects: reduce color augmentations
+#   T10-Discoloration:
+#     exclude: [RandomBrightnessContrast]
+#     max_color_change: 0.05
+    
+#   # Size-sensitive defects: avoid size-changing augmentations
+#   T5-WhiteDot:
+#     exclude: [RandomScale, Resize]
+#     conservative_rotation: 5  # max degrees
+    
+#   T7-MultipleDot:
+#     exclude: [RandomScale, Resize]
+    
+#   T8-LightDot:
+#     exclude: [RandomScale, Resize, RandomBrightnessContrast]
+    
+#   T9-DarkDot:
+#     exclude: [RandomScale, Resize, RandomBrightnessContrast]
+    
+#   T13-ShinyDot:
+#     exclude: [RandomScale, Resize, RandomBrightnessContrast]
+    
+#   T14-MatteDot:
+#     exclude: [RandomScale, Resize, RandomBrightnessContrast]
+
+# Validation settings
+validation:
+  # Bounding box validation (for bbox formats)
+  min_bbox_width: 0.002
+  min_bbox_height: 0.002
+  min_bbox_area: 0.000004
+  min_visibility: 0.5
+  
+  # Segmentation validation (for segmentation formats)
+  min_mask_area: 100  # minimum pixels in mask
+  
+  # General validation
+  max_retries: 10
+
+# Conservative mode (for very sensitive defects)
+conservative_mode:
+  enabled: false
+  max_rotation: 5
+  max_brightness_change: 0.05
+  max_contrast_change: 0.05

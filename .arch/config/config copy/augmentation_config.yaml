@@ -1,0 +1,167 @@
+# Perfect Data Augmentation Configuration
+# Modular, extensible, and configurable augmentation pipeline for defect detection
+
+
+# Dataset configuration
+dataset:
+  input_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split/test/
+  labels_file: null  # Optional: CSV with image_path,class for multi-class
+  mode: single_class  # 'single_class' or 'multi_class'
+  format: yolo  # 'yolo' or 'coco'
+  
+
+# General settings
+general:
+  seed: 42  # For reproducibility
+  output_dir: /home/aoi-linux/nas/hvs_aoi_2/Personal/Jakhon/APPLE/surface_det/onprocess/data_v5/labelsMEyoloCHUNK/split_aug/test/
+  batch_size: 32
+  num_augmentations_per_image: 5  # How many augmented versions per original
+  resize_dim: [1280, 1280]  # [width, height] - null to keep original size
+  target_count: 50  # Target number of total images
+  num_workers: null  # null = auto-detect, or specify number
+
+# Global augmentations (applied to all unless overridden)
+global_augmentations:
+  - name: Rotate
+    probability: 0.5
+    params:
+      limit: [-15, 15]  # Degrees
+  - name: HorizontalFlip
+    probability: 0.5
+    params: {}
+  - name: VerticalFlip
+    probability: 0.4
+    params: {}
+  - name: RandomBrightnessContrast
+    probability: 0.3
+    params:
+      brightness_limit: [-0.1, 0.1]  # Mild to avoid color issues
+      contrast_limit: [-0.1, 0.1]
+  - name: CLAHE
+    probability: 0.4
+    params:
+      clip_limit: 2.0
+      tile_grid_size: [8, 8]
+  - name: RandomGamma
+    probability: 0.3
+    params:
+      gamma_limit: [90, 110]
+  - name: Sharpen
+    probability: 0.3
+    params:
+      alpha: [0.1, 0.3]
+      lightness: [0.8, 1.2]
+
+# Class-specific overrides (for multi-class mode)
+class_specific:
+  T10-Discoloration:  # Color-sensitive defect
+    exclude: [RandomBrightnessContrast, HueSaturationValue, ColorJitter]  # No color changes
+    include:
+      - name: Rotate
+        probability: 0.6
+        params:
+          limit: [-10, 10]  # More conservative rotation
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+    
+  T5-WhiteDot:  # Size-sensitive defect
+    min_defect_area: 40  # Pixels² - custom validator will enforce
+    exclude: [RandomScale, Resize]  # Avoid shrinking
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.4
+        params:
+          limit: [-5, 5]  # Very conservative rotation
+      - name: RandomBrightnessContrast
+        probability: 0.2
+        params:
+          brightness_limit: [-0.05, 0.05]
+          contrast_limit: [-0.05, 0.05]
+          
+  T7-MultipleDot:  # Size-sensitive defect
+    min_defect_area: 40
+    exclude: [RandomScale, Resize]
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: Transpose
+        probability: 0.3
+        params: {}
+        
+  T8-LightDot:  # Size-sensitive defect
+    min_defect_area: 40
+    exclude: [RandomScale, Resize]
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+        
+  T9-DarkDot:  # Size-sensitive defect
+    min_defect_area: 40
+    exclude: [RandomScale, Resize]
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+        
+  T13-ShinyDot:  # Size-sensitive defect
+    min_defect_area: 40
+    exclude: [RandomScale, Resize, RandomBrightnessContrast]  # Avoid brightness changes
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+        
+  T14-MatteDot:  # Size-sensitive defect
+    min_defect_area: 40
+    exclude: [RandomScale, Resize, RandomBrightnessContrast]  # Avoid brightness changes
+    include:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+
+# Custom validations (extendable)
+validations:
+  - name: MinDefectSizeValidator
+    params:
+      threshold: 40  # px²
+      apply_to_classes: [T5-WhiteDot, T7-MultipleDot, T8-LightDot, T9-DarkDot, T13-ShinyDot, T14-MatteDot]
+  - name: ColorSensitivityValidator
+    params:
+      max_color_change: 0.1  # Maximum allowed color deviation
+      apply_to_classes: [T10-Discoloration]
+
+
+# Conservative mode settings (for very sensitive defects)
+conservative_mode:
+  enabled: false
+  min_visibility: 0.7
+  max_rotation: 5
+  max_brightness_change: 0.05
+  max_contrast_change: 0.05

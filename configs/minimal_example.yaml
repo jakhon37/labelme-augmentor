@@ -1,0 +1,17 @@
+# Minimal Example Configuration
+# This is the simplest possible configuration
+
+general:
+  seed: 42
+
+paths:
+  input_json_dir: "data/input"
+  output_dir: "data/output"
+
+global_augmentations:
+  num_augmentations_per_image: 5
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5

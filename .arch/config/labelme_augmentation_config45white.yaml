@@ -1,0 +1,427 @@
+# LabelMe Augmentation Configuration v13 - Balanced Distribution
+# Complete configuration for flexible augmentation with per-class settings
+
+# General settings
+general:
+  seed: 42
+  num_workers: null  # null = auto-detect cores, or specify number
+  enable_base64: false  # Set to false to save disk space and processing time
+  checkpoint_file: "augmentation_checkpoint.json"  # Resume from checkpoint
+  resume_from_checkpoint: true  # Enable checkpoint/resume functionality
+  
+# Input/Output paths
+paths:
+  input_json_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/WHITE45/white45__crp_chunk01_20/defect_split_even/train"
+  output_dir: "/home/aoi-linux/workspace/defecTRAIN/DATA/data_15_45_75/WHITE45/white45__crp_chunk01_20/defect_split_even/train_aug_01_20"
+  
+# Output structure
+output:
+  images_subdir: "imagesLB"
+  annotations_subdir: "imagesLB"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# Global augmentation settings (applied to all classes unless overridden)
+global_augmentations:
+  num_augmentations_per_image: 0  # How many augmented versions per image
+  
+  # Augmentation pipeline
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+      params: {}
+      
+    - name: VerticalFlip
+      probability: 0.3
+      params: {}
+      
+    - name: RandomRotate90
+      probability: 0.5
+      params: {}
+      
+    - name: Rotate
+      probability: 0.4
+      params:
+        limit: 30
+        border_mode: 0
+        
+    - name: ShiftScaleRotate
+      probability: 0.5
+      params:
+        shift_limit: 0.1
+        scale_limit: 0.15
+        rotate_limit: 15
+        border_mode: 0
+        
+    - name: OpticalDistortion
+      probability: 0.3
+      params:
+        distort_limit: 0.05
+        border_mode: 0
+        
+    - name: GridDistortion
+      probability: 0.2
+      params:
+        num_steps: 5
+        distort_limit: 0.3
+        border_mode: 0
+        
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 1.0
+        sigma: 50.0
+        border_mode: 0
+        
+    - name: PadIfNeeded
+      probability: 0.2
+      params:
+        min_height: 384
+        min_width: 384
+        border_mode: 0
+        
+    - name: Transpose
+      probability: 0.2
+      params: {}
+      
+    - name: RandomBrightnessContrast
+      probability: 0.2
+      params:
+        brightness_limit: 0.1
+        contrast_limit: 0.1
+
+# Per-class augmentation settings 
+# CURRENT CLASS DISTRIBUTION:
+# ==============================
+# T18-EmbeddedForeignFiber |   1276 |  34.7%
+# T10-Discoloration        |   1098 |  29.9%
+# T2-Depress               |    659 |  17.9%
+# T9-DarkDot               |    260 |   7.1%
+# T4-AbrasionScratch       |    148 |   4.0%
+# T1-Scratch               |    144 |   3.9%
+# T1-ScratchDot            |     90 |   2.4%
+# Total: 3675 annotations across 7 classes
+# Target: Balance to ~13000 samples per class
+
+class_specific:
+
+  # EXTREMELY RARE CLASS - Massive augmentation needed (90 samples -> ~13500 target)
+  T1-ScratchDot:
+    num_augmentations_per_image: 150  # 90 * 150 = 13,500
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.7
+        params: {}
+      - name: VerticalFlip
+        probability: 0.7
+        params: {}
+      - name: RandomRotate90
+        probability: 0.6
+        params: {}
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.4
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.3
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+      - name: Transpose
+        probability: 0.3
+        params: {}
+      - name: RandomBrightnessContrast
+        probability: 0.3
+        params:
+          brightness_limit: 0.15
+          contrast_limit: 0.15
+
+  # VERY RARE CLASS - Heavy augmentation (144 samples -> ~13680 target)
+  T1-Scratch:
+    num_augmentations_per_image: 95  # 144 * 95 = 13,680
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.7
+        params: {}
+      - name: VerticalFlip
+        probability: 0.7
+        params: {}
+      - name: RandomRotate90
+        probability: 0.6
+        params: {}
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.4
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.3
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+      - name: Transpose
+        probability: 0.3
+        params: {}
+
+  # VERY RARE CLASS - Heavy augmentation (148 samples -> ~13616 target)
+  T4-AbrasionScratch:
+    num_augmentations_per_image: 92  # 148 * 92 = 13,616
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.7
+        params: {}
+      - name: VerticalFlip
+        probability: 0.7
+        params: {}
+      - name: RandomRotate90
+        probability: 0.6
+        params: {}
+      - name: Rotate
+        probability: 0.8
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.4
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: OpticalDistortion
+        probability: 0.3
+        params:
+          distort_limit: 0.05
+          border_mode: 0
+
+  # RARE CLASS - Moderate augmentation (260 samples -> ~13520 target)
+  T9-DarkDot:
+    num_augmentations_per_image: 52  # 260 * 52 = 13,520
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.6
+        params: {}
+      - name: VerticalFlip
+        probability: 0.6
+        params: {}
+      - name: RandomRotate90
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.7
+        params:
+          limit: 45
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.7
+        params:
+          shift_limit: 0.2
+          scale_limit: 0.25
+          rotate_limit: 30
+          border_mode: 0
+      - name: ElasticTransform
+        probability: 0.3
+        params:
+          alpha: 1.0
+          sigma: 50.0
+          border_mode: 0
+      - name: GridDistortion
+        probability: 0.3
+        params:
+          num_steps: 5
+          distort_limit: 0.3
+          border_mode: 0
+      - name: Transpose
+        probability: 0.3
+        params: {}
+
+  # MEDIUM CLASS - Light augmentation (659 samples -> ~13839 target)
+  T2-Depress:
+    num_augmentations_per_image: 21  # 659 * 21 = 13,839
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.6
+        params: {}
+      - name: VerticalFlip
+        probability: 0.6
+        params: {}
+      - name: RandomRotate90
+        probability: 0.5
+        params: {}
+      - name: Rotate
+        probability: 0.6
+        params:
+          limit: 30
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.6
+        params:
+          shift_limit: 0.15
+          scale_limit: 0.2
+          rotate_limit: 20
+          border_mode: 0
+      - name: RandomBrightnessContrast
+        probability: 0.4
+        params:
+          brightness_limit: 0.1
+          contrast_limit: 0.1
+
+  # HIGH CLASS - Moderate augmentation (1098 samples -> ~13176 target)
+  T10-Discoloration:
+    num_augmentations_per_image: 12  # 1098 * 12 = 13,176
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: RandomRotate90
+        probability: 0.3
+        params: {}
+      - name: Rotate
+        probability: 0.5
+        params:
+          limit: 30
+          border_mode: 0
+      - name: ShiftScaleRotate
+        probability: 0.5
+        params:
+          shift_limit: 0.1
+          scale_limit: 0.15
+          rotate_limit: 15
+          border_mode: 0
+
+  # VERY HIGH CLASS - Light augmentation (1276 samples -> ~12760 target)
+  T18-EmbeddedForeignFiber:
+    num_augmentations_per_image: 10  # 1276 * 10 = 12,760
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+        params: {}
+      - name: VerticalFlip
+        probability: 0.5
+        params: {}
+      - name: RandomRotate90
+        probability: 0.3
+        params: {}
+
+# Validation settings
+validation:
+  enabled: true
+  
+  # Minimum defect area after augmentation (in pixels)
+  min_defect_area: 20
+  
+  # Maximum defect area (to filter out artifacts)
+  max_defect_area: null  # null = no limit
+  
+  # Minimum number of contour points
+  min_contour_points: 3
+  
+  # Check if augmentation significantly changed the defect
+  check_defect_preservation: true
+  max_area_change_ratio: 0.5  # Reject if area changed more than 50%
+  
+  # Reject augmentations where defects touch image border
+  reject_border_defects: false
+  border_margin: 5  # pixels
+
+# Color palette for visualization
+visualization:
+  auto_generate_colors: true  # Generate unlimited colors
+  custom_colors:  # Optional: define specific colors for classes
+    # Format: [R, G, B]
+    T1-Scratch: [255, 0, 0]
+    T1-ScratchDot: [255, 100, 0]
+    T2-Depress: [0, 255, 0]
+    T4-AbrasionScratch: [0, 0, 255]
+    T9-DarkDot: [255, 255, 0]
+    T10-Discoloration: [255, 0, 255]
+    T18-EmbeddedForeignFiber: [0, 255, 255]
+  default_colors:
+    - [255, 0, 0]    # Red
+    - [0, 255, 0]    # Green
+    - [0, 0, 255]    # Blue
+    - [255, 255, 0]  # Yellow
+    - [255, 0, 255]  # Magenta
+    - [0, 255, 255]  # Cyan
+    - [128, 0, 0]    # Maroon
+    - [0, 128, 0]    # Dark Green
+    - [0, 0, 128]    # Navy
+    - [128, 128, 0]  # Olive
+
+# Image format handling
+image_processing:
+  # Supported input formats
+  supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif']
+  
+  # Output format
+  output_format: 'tif'  # 'tif', 'tiff', 'png', 'jpg', etc.
+  output_quality: 95  # For JPEG (not used for TIF)
+  
+  # Handle different bit depths
+  normalize_16bit: true  # Convert 16-bit to 8-bit
+  
+  # Handle different color spaces
+  convert_to_rgb: false  # Keep grayscale images as grayscale
+  
+  # Handle different channel counts
+  handle_grayscale: true  # Process grayscale images natively
+  handle_rgba: true  # Remove alpha channel if present
+  
+  # Image validation
+  validate_loaded_images: true
+  min_image_size: [256, 256]  # [width, height]
+  max_image_size: [640, 640]

@@ -1,0 +1,423 @@
+# ==============================================================================
+# ALL WORKING DUAL TRANSFORMS REFERENCE
+# ==============================================================================
+# This config demonstrates ALL 40+ dual transforms (image + mask) that work
+# with LabelMe mask augmentation. Use this as a reference to pick transforms
+# for your specific use case.
+#
+# ⚠️ WARNING: This config uses ALL transforms simultaneously with high
+# probability - NOT recommended for production! Use this as a reference only.
+#
+# 📌 IMPORTANT PARAMETER NOTES:
+# - RandomSizedCrop & RandomResizedCrop require: size: [height, width]
+# - CenterCrop, RandomCrop, Resize use: height: X, width: Y (separate params)
+# - Always check Albumentations docs for parameter changes across versions
+#
+# Tested with: Albumentations 2.0.8
+# Total working dual transforms: 41
+# ==============================================================================
+
+general:
+  seed: 42
+  num_workers: 4
+  log_level: "INFO"
+
+paths:
+  input_json_dir: "/path/to/input"
+  output_dir: "/path/to/output"
+
+output:
+  images_subdir: "images"
+  annotations_subdir: "annotations"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+# ==============================================================================
+# COMPREHENSIVE TRANSFORM LIST
+# ==============================================================================
+# All transforms are set to p=0.3 to demonstrate variety without over-augmenting
+# For production, carefully select transforms relevant to your defects
+# ==============================================================================
+
+global_augmentations:
+  num_augmentations_per_image: 5
+  transforms:
+    
+    # ==========================================================================
+    # GEOMETRIC TRANSFORMS (Spatial transformations)
+    # ==========================================================================
+    
+    # --- Flips ---
+    - name: HorizontalFlip
+      probability: 0.3
+    
+    - name: VerticalFlip
+      probability: 0.3
+    
+    - name: Transpose
+      probability: 0.2
+    
+    - name: RandomRotate90
+      probability: 0.2
+    
+    # --- Rotation & Affine ---
+    - name: Rotate
+      probability: 0.3
+      params:
+        limit: [-45, 45]
+        border_mode: 0
+    
+    - name: SafeRotate
+      probability: 0.2
+      params:
+        limit: [-45, 45]
+    
+    - name: ShiftScaleRotate
+      probability: 0.3
+      params:
+        shift_limit: 0.0625
+        scale_limit: 0.1
+        rotate_limit: 45
+        border_mode: 0
+    
+    - name: Affine
+      probability: 0.3
+      params:
+        scale: [0.8, 1.2]
+        translate_percent: [-0.1, 0.1]
+        rotate: [-45, 45]
+        shear: [-15, 15]
+    
+    # --- Advanced Spatial Distortions ---
+    - name: ElasticTransform
+      probability: 0.2
+      params:
+        alpha: 50
+        sigma: 5
+        border_mode: 0
+    
+    - name: GridDistortion
+      probability: 0.2
+      params:
+        num_steps: 5
+        distort_limit: 0.3
+    
+    - name: OpticalDistortion
+      probability: 0.2
+      params:
+        distort_limit: 0.5
+        shift_limit: 0.5
+    
+    - name: Perspective
+      probability: 0.2
+      params:
+        scale: [0.05, 0.1]
+    
+    - name: PiecewiseAffine
+      probability: 0.2
+      params:
+        scale: [0.03, 0.05]
+    
+    # --- Symmetry Transforms ---
+    - name: D4
+      probability: 0.2
+      # D4 group: all rotations and reflections of a square
+    
+    # ==========================================================================
+    # CROPPING & RESIZING TRANSFORMS
+    # ==========================================================================
+    
+    - name: CenterCrop
+      probability: 0.1
+      params:
+        height: 512
+        width: 512
+    
+    - name: Crop
+      probability: 0.1
+      params:
+        x_min: 10
+        y_min: 10
+        x_max: 500
+        y_max: 500
+    
+    - name: RandomCrop
+      probability: 0.2
+      params:
+        height: 512
+        width: 512
+    
+    - name: RandomSizedCrop
+      probability: 0.2
+      params:
+        min_max_height: [400, 600]
+        size: [512, 512]  # (height, width) - REQUIRED parameter
+    
+    - name: RandomResizedCrop
+      probability: 0.2
+      params:
+        size: [512, 512]  # (height, width) - REQUIRED parameter
+        scale: [0.8, 1.0]
+        ratio: [0.9, 1.1]
+    
+    - name: CropAndPad
+      probability: 0.2
+      params:
+        px: [-50, 50]
+        keep_size: true
+    
+    - name: RandomScale
+      probability: 0.2
+      params:
+        scale_limit: 0.2
+    
+    - name: LongestMaxSize
+      probability: 0.2
+      params:
+        max_size: 1024
+    
+    - name: SmallestMaxSize
+      probability: 0.2
+      params:
+        max_size: 512
+    
+    - name: Resize
+      probability: 0.2
+      params:
+        height: 512
+        width: 512
+    
+    # ==========================================================================
+    # PADDING TRANSFORMS
+    # ==========================================================================
+    
+    - name: Pad
+      probability: 0.2
+      params:
+        min_height: 600
+        min_width: 600
+        border_mode: 0
+    
+    - name: PadIfNeeded
+      probability: 0.2
+      params:
+        min_height: 512
+        min_width: 512
+        border_mode: 0
+    
+    # ==========================================================================
+    # DROPOUT & ERASING TRANSFORMS
+    # ==========================================================================
+    
+    - name: CoarseDropout
+      probability: 0.2
+      params:
+        max_holes: 8
+        max_height: 32
+        max_width: 32
+        min_holes: 1
+        min_height: 8
+        min_width: 8
+    
+    - name: ConstrainedCoarseDropout
+      probability: 0.2
+      params:
+        max_holes: 5
+        max_height: 32
+        max_width: 32
+    
+    - name: GridDropout
+      probability: 0.2
+      params:
+        ratio: 0.3
+        unit_size_min: 10
+        unit_size_max: 20
+    
+    - name: MaskDropout
+      probability: 0.1
+      params:
+        max_objects: 1
+    
+    - name: Erasing
+      probability: 0.2
+      params:
+        min_area: 0.02
+        max_area: 0.2
+        min_aspect: 0.3
+        max_aspect: 3.3
+    
+    - name: FrequencyMasking
+      probability: 0.1
+      params:
+        mask_fraction: 0.1
+    
+    # ==========================================================================
+    # MORPHOLOGICAL TRANSFORMS
+    # ==========================================================================
+    
+    - name: Morphological
+      probability: 0.2
+      params:
+        operation: 'dilation'
+        kernel: [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+    
+    # ==========================================================================
+    # PIXEL-LEVEL TRANSFORMS (Applied to both image and mask appropriately)
+    # ==========================================================================
+    
+    - name: PixelDropout
+      probability: 0.2
+      params:
+        dropout_prob: 0.01
+        per_channel: false
+    
+    - name: XYMasking
+      probability: 0.1
+      params:
+        num_masks_x: [0, 3]
+        num_masks_y: [0, 3]
+        mask_x_length: [10, 50]
+        mask_y_length: [10, 50]
+    
+    # ==========================================================================
+    # ADVANCED LAMBDA TRANSFORM (Custom operations)
+    # ==========================================================================
+    
+    - name: Lambda
+      probability: 0.1
+      params:
+        image: "lambda x, **kwargs: x"  # Pass through
+        mask: "lambda x, **kwargs: x"   # Pass through
+
+# ==============================================================================
+# VALIDATION SETTINGS
+# ==============================================================================
+# Conservative validation since we're applying many transforms
+# ==============================================================================
+
+validation:
+  enabled: true
+  min_defect_area: 10
+  max_defect_area: 100000
+  min_contour_points: 3
+  check_defect_preservation: true
+  max_area_change_ratio: 0.8  # Very tolerant due to many transforms
+  reject_border_defects: false
+  border_margin: 5
+
+# ==============================================================================
+# CLASS-SPECIFIC EXAMPLE
+# ==============================================================================
+# Example showing how to use specific transforms per class
+# ==============================================================================
+
+class_specific:
+  
+  # Geometric-only augmentation
+  ExampleClass1:
+    num_augmentations_per_image: 3
+    transforms:
+      - name: HorizontalFlip
+        probability: 0.5
+      - name: VerticalFlip
+        probability: 0.5
+      - name: Rotate
+        probability: 0.5
+        params:
+          limit: [-30, 30]
+      - name: ShiftScaleRotate
+        probability: 0.3
+      - name: ElasticTransform
+        probability: 0.3
+        params:
+          alpha: 30
+          sigma: 5
+  
+  # Distortion-heavy augmentation
+  ExampleClass2:
+    num_augmentations_per_image: 3
+    transforms:
+      - name: GridDistortion
+        probability: 0.5
+        params:
+          num_steps: 5
+      - name: OpticalDistortion
+        probability: 0.5
+      - name: Perspective
+        probability: 0.5
+      - name: PiecewiseAffine
+        probability: 0.3
+  
+  # Dropout-focused augmentation
+  ExampleClass3:
+    num_augmentations_per_image: 3
+    transforms:
+      - name: CoarseDropout
+        probability: 0.5
+        params:
+          max_holes: 8
+          max_height: 32
+          max_width: 32
+      - name: GridDropout
+        probability: 0.5
+        params:
+          ratio: 0.3
+      - name: Erasing
+        probability: 0.3
+
+visualization:
+  auto_generate_colors: true
+  custom_colors: {}
+  default_colors: []
+
+image_processing:
+  output_format: 'png'
+  output_quality: 95
+
+# ==============================================================================
+# TRANSFORM CATEGORIES REFERENCE
+# ==============================================================================
+# 
+# GEOMETRIC (17 transforms):
+# - Flips: HorizontalFlip, VerticalFlip, Transpose, RandomRotate90
+# - Rotation: Rotate, SafeRotate, ShiftScaleRotate, Affine
+# - Distortion: ElasticTransform, GridDistortion, OpticalDistortion, 
+#               Perspective, PiecewiseAffine
+# - Symmetry: D4
+# - Crop relative: RandomCropFromBorders
+# 
+# CROPPING & RESIZING (13 transforms):
+# - Crop: CenterCrop, Crop, RandomCrop, RandomSizedCrop, RandomResizedCrop,
+#         CropAndPad
+# - Resize: Resize, LongestMaxSize, SmallestMaxSize, RandomScale
+# - Padding: Pad, PadIfNeeded
+# 
+# DROPOUT & ERASING (6 transforms):
+# - CoarseDropout, ConstrainedCoarseDropout, GridDropout, MaskDropout
+# - Erasing, FrequencyMasking
+# 
+# MORPHOLOGICAL (1 transform):
+# - Morphological (dilation, erosion, opening, closing)
+# 
+# PIXEL-LEVEL (2 transforms):
+# - PixelDropout, XYMasking
+# 
+# ADVANCED (2 transforms):
+# - Lambda (custom operations)
+# - RandomCropFromBorders
+# 
+# Total: 41 working dual transforms
+# 
+# ==============================================================================
+# NOTES
+# ==============================================================================
+# 
+# 1. Not all transforms are appropriate for all defect types
+# 2. Start with basic geometric transforms (flips, rotation)
+# 3. Add distortions carefully - test that defects remain detectable
+# 4. Dropout transforms can help with occlusion robustness
+# 5. Morphological can change defect boundaries - use with caution
+# 6. Test augmented data visually before training
+# 7. Use validation.max_area_change_ratio to reject aggressive augmentations
+# 
+# ==============================================================================

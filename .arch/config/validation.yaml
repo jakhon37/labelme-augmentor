@@ -1,0 +1,132 @@
+# Validation Configuration
+# Define validation rules and thresholds
+
+# Global validation settings
+validation_settings:
+  # Bounding box validation
+  bbox_validation:
+    min_width: 0.002          # Minimum bbox width (normalized)
+    min_height: 0.002         # Minimum bbox height (normalized)
+    max_width: 1.0            # Maximum bbox width
+    max_height: 1.0           # Maximum bbox height
+    min_area: 0.000004        # Minimum bbox area (width * height)
+    min_visibility: 0.5       # Minimum visibility after augmentation
+    
+  # Image validation
+  image_validation:
+    min_image_size: [64, 64]  # Minimum image dimensions
+    max_image_size: [8192, 8192]  # Maximum image dimensions
+    supported_formats: ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff']
+    
+  # Augmentation retry settings
+  retry_settings:
+    max_retries: 10           # Maximum retry attempts per augmentation
+    timeout_seconds: 30       # Timeout for single augmentation
+    
+# Class-specific validation rules
+class_validation_rules:
+  # Size-sensitive defects
+  size_sensitive_defects:
+    classes:
+      - T5-WhiteDot
+      - T7-MultipleDot
+      - T8-LightDot
+      - T9-DarkDot
+      - T13-ShinyDot
+      - T14-MatteDot
+    rules:
+      min_defect_area_pixels: 40    # Minimum area in pixels²
+      min_bbox_area: 0.0001         # Minimum normalized bbox area
+      preserve_aspect_ratio: true    # Try to preserve aspect ratio
+      max_scale_down: 0.8           # Maximum scale down factor
+      
+  # Color-sensitive defects
+  color_sensitive_defects:
+    classes:
+      - T5-WhiteDot
+      - T8-LightDot
+      - T9-DarkDot
+      - T10-Discoloration
+      - T13-ShinyDot
+      - T14-MatteDot
+      - T19-BlackLine
+    rules:
+      max_color_deviation: 0.1      # Maximum color change (0-1)
+      max_brightness_change: 0.05   # Maximum brightness change
+      max_contrast_change: 0.05     # Maximum contrast change
+      max_saturation_change: 0.03   # Maximum saturation change
+      preserve_color_relationships: true
+      
+  # Linear defects
+  linear_defects:
+    classes:
+      - T1-Scratch
+      - T15-Stripe
+      - T19-BlackLine
+      - T20-ShortScratch
+    rules:
+      preserve_orientation: false   # Linear defects can be rotated
+      min_length_pixels: 10         # Minimum length in pixels
+      max_rotation: 180             # Can be rotated freely
+      
+  # Spot defects
+  spot_defects:
+    classes:
+      - T5-WhiteDot
+      - T7-MultipleDot
+      - T8-LightDot
+      - T9-DarkDot
+      - T13-ShinyDot
+      - T14-MatteDot
+    rules:
+      preserve_circularity: true    # Try to keep spots circular
+      min_diameter_pixels: 6        # Minimum diameter
+      max_aspect_ratio: 2.0         # Maximum width/height ratio
+
+# Validation strategies by defect type
+validation_strategies:
+  ultra_conservative:
+    min_visibility: 0.8
+    max_retries: 15
+    strict_size_validation: true
+    strict_color_validation: true
+    
+  conservative:
+    min_visibility: 0.7
+    max_retries: 10
+    strict_size_validation: true
+    strict_color_validation: false
+    
+  standard:
+    min_visibility: 0.5
+    max_retries: 5
+    strict_size_validation: false
+    strict_color_validation: false
+    
+  aggressive:
+    min_visibility: 0.3
+    max_retries: 3
+    strict_size_validation: false
+    strict_color_validation: false
+
+# Custom validators configuration
+custom_validators:
+  MinDefectSizeValidator:
+    enabled: true
+    default_threshold: 40
+    apply_to_size_sensitive: true
+    
+  ColorSensitivityValidator:
+    enabled: true
+    default_max_change: 0.1
+    apply_to_color_sensitive: true
+    
+  AspectRatioValidator:
+    enabled: false
+    max_ratio: 10.0
+    apply_to_all: true
+    
+  VisibilityValidator:
+    enabled: true
+    min_visibility: 0.5
+    apply_to_all: true

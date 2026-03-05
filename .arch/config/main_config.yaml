@@ -1,0 +1,82 @@
+# Perfect Data Augmentation Configuration - Main Config
+# This file references other configuration files for better organization
+
+# Configuration file references
+config_files:
+  classes: config/classes.yaml          # Defect classes and properties
+  augmentations: config/augmentations.yaml  # Augmentation strategies
+  validation: config/validation.yaml    # Validation rules
+  processing: config/processing.yaml    # Processing settings
+
+# Project settings
+project:
+  name: "Perfect Augmentation Pipeline"
+  version: "1.0.0"
+  description: "Modular defect detection augmentation system"
+
+# Dataset configuration
+dataset:
+  input_dir: data/original/
+  output_dir: augmented_data/
+  mode: single_class  # 'single_class' or 'multi_class'
+  format: yolo  # 'yolo' or 'coco'
+  
+  # Override processing settings
+  target_count: 5000
+  augmentations_per_image: 5
+  
+# Augmentation strategy selection
+augmentation_strategy:
+  # Global strategy (used when no class-specific strategy is defined)
+  global: standard
+  
+  # Class-specific strategies (auto-generated from class properties if not specified)
+  class_strategies:
+    T10-Discoloration: color_sensitive
+    T5-WhiteDot: size_sensitive
+    T7-MultipleDot: size_sensitive
+    T8-LightDot: size_sensitive
+    T9-DarkDot: size_sensitive
+    T13-ShinyDot: size_sensitive
+    T14-MatteDot: size_sensitive
+    # Other classes will use 'standard' strategy by default
+
+# Validation strategy selection
+validation_strategy:
+  global: standard
+  
+  # Override for specific classes
+  class_validation:
+    T10-Discoloration: conservative
+    T5-WhiteDot: conservative
+    T7-MultipleDot: conservative
+    T8-LightDot: conservative
+    T9-DarkDot: conservative
+    T13-ShinyDot: conservative
+    T14-MatteDot: conservative
+
+# Processing overrides (override settings from processing.yaml)
+processing_overrides:
+  system:
+    threading:
+      num_workers: null  # null = auto-detect
+    reproducibility:
+      seed: 42
+      
+  image_processing:
+    resize:
+      default_size: [1280, 1280]
+      
+  dataset:
+    targets:
+      default_target_count: 5000
+      augmentations_per_image: 5
+
+# Conservative mode (applies additional restrictions)
+conservative_mode:
+  enabled: false
+  
+  # When enabled, these settings override strategy selections
+  force_conservative_validation: true
+  max_augmentations_per_image: 3
+  require_manual_review: false

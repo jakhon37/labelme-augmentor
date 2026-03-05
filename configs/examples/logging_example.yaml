@@ -1,0 +1,44 @@
+# Example configuration with logging settings
+
+general:
+  seed: 42
+  num_workers: 4
+  log_level: INFO  # File logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Logging configuration
+logging:
+  log_to_file: true          # Save logs to file
+  log_to_console: true       # Show logs in console
+  console_level: WARNING     # Console level (less verbose than file)
+  log_filename: null         # null = auto-generate with timestamp
+  # log_filename: "my_augmentation.log"  # Or specify custom name
+
+paths:
+  input_json_dir: "data/input"
+  output_dir: "data/output"
+
+output:
+  images_subdir: "images"
+  annotations_subdir: "annotations"
+  debug_subdir: "debug"
+  create_debug_visualizations: true
+
+global_augmentations:
+  num_augmentations_per_image: 5
+  transforms:
+    - name: HorizontalFlip
+      probability: 0.5
+    - name: VerticalFlip
+      probability: 0.5
+
+validation:
+  enabled: true
+  min_defect_area: 20
+
+visualization:
+  auto_generate_colors: true
+  custom_colors: {}
+  default_colors: []
+
+image_processing:
+  output_format: png
