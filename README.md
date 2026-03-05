@@ -1,14 +1,14 @@
 # LabelMe Augmentor
 
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-![PyPI](https://img.shields.io/pypi/v/labelme-augmentor-pro)
+![PyPI](https://img.shields.io/pypi/v/labelme-augment)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-beta-yellow)
 ![Tests](https://img.shields.io/badge/tests-52%20passed-brightgreen)
 
 Advanced data augmentation tool for LabelMe annotated datasets with support for class-specific augmentation strategies, validation, and multiprocessing.
 
-**🔗 Links:** [GitHub](https://github.com/jakhon37/labelme-augmentor) | [PyPI](https://pypi.org/project/labelme-augmentor-pro/) | [Issues](https://github.com/jakhon37/labelme-augmentor/issues)
+**🔗 Links:** [GitHub](https://github.com/jakhon37/labelme-augmentor) | [PyPI](https://pypi.org/project/labelme-augment/) | [Issues](https://github.com/jakhon37/labelme-augmentor/issues)
 
 ## 🌟 Features
 
@@ -27,7 +27,7 @@ Advanced data augmentation tool for LabelMe annotated datasets with support for 
 ### From PyPI (Recommended)
 
 ```bash
-pip install labelme-augmentor-pro
+pip install labelme-augment
 ```
 
 ### From Source

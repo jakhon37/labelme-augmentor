@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "labelme-augmentor-pro"
+name = "labelme-augment"
 version = "2.0.0"
 description = "Advanced data augmentation tool for LabelMe annotated datasets"
 readme = "README.md"

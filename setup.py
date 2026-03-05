@@ -8,7 +8,7 @@ with open("src/labelme_augmentor/__version__.py") as f:
     exec(f.read(), version)
 
 setup(
-    name="labelme-augmentor-pro",
+    name="labelme-augment",
     version=version["__version__"],
     description="Advanced data augmentation tool for LabelMe annotated datasets",
     long_description=open("README.md").read(),
