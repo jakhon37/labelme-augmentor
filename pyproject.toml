@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "labelme-augment"
-version = "2.0.0"
+version = "2.0.1"
 description = "Advanced data augmentation tool for LabelMe annotated datasets"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -60,10 +60,9 @@ docs = [
 labelme-augment = "labelme_augmentor.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/labelme-augmentor"
-Documentation = "https://labelme-augmentor.readthedocs.io"
-Repository = "https://github.com/yourusername/labelme-augmentor"
-"Bug Tracker" = "https://github.com/yourusername/labelme-augmentor/issues"
+Homepage = "https://github.com/jakhon37/labelme-augmentor"
+Repository = "https://github.com/jakhon37/labelme-augmentor"
+"Bug Tracker" = "https://github.com/jakhon37/labelme-augmentor/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
